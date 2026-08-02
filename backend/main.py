@@ -1,9 +1,15 @@
+from backend.identity.service import IdentityService
+
+
 def main():
-    print("=" * 50)
+    service = IdentityService()
+
+    identity = service.create_demo_identity()
+
     print("MAIN BASE FOUNDATION")
-    print("Version : 1.0")
-    print("Status  : Active Development")
-    print("=" * 50)
+    print("---------------------")
+    print(identity)
+
 
 if __name__ == "__main__":
     main()
