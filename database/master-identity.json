@@ -3,11 +3,26 @@
   "full_name": "",
   "display_name": "",
   "primary_username": "",
+  "alias_usernames": [],
+  "profile_type": "",
+  "status": "active",
+
   "email": "",
   "phone": "",
+
   "brand_name": "",
+  "brand_tagline": "",
+
   "business_name": "",
+  "business_type": "",
+
   "website": "",
   "domain": "",
-  "status": "active"
+
+  "language": "en",
+  "timezone": "Asia/Kolkata",
+
+  "created_at": "",
+  "updated_at": "",
+  "version": "1.0"
 }
