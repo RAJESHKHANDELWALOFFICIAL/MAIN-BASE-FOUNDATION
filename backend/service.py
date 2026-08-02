@@ -3,12 +3,20 @@ from .model import MasterIdentity
 
 class IdentityService:
 
-    def create_demo_identity(self):
+    def create_identity(
+        self,
+        master_id,
+        full_name,
+        display_name,
+        username,
+        email,
+        phone,
+    ):
         return MasterIdentity(
-            master_id="MBF-000001",
-            full_name="Demo User",
-            display_name="Demo",
-            primary_username="demo",
-            email="demo@example.com",
-            phone="+910000000000",
+            master_id=master_id,
+            full_name=full_name,
+            display_name=display_name,
+            primary_username=username,
+            email=email,
+            phone=phone,
         )
