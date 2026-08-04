@@ -1,22 +1,32 @@
 from backend.config.service import ConfigService
+from backend.database.service import DatabaseService
 from backend.identity.service import IdentityService
 from backend.auth.service import AuthenticationService
-from backend.database.service import DatabaseService
-from backend.storage.service import StorageService
-from backend.security.service import SecurityService
-from backend.api.service import APIService
 
 
 class MainBaseFoundation:
 
     def __init__(self):
         self.config = ConfigService()
+        self.database = DatabaseService()
         self.identity = IdentityService()
         self.authentication = AuthenticationService()
-        self.database = DatabaseService()
-        self.storage = StorageService()
-        self.security = SecurityService()
-        self.api = APIService()
 
     def start(self):
-        return "MAIN BASE FOUNDATION STARTED"
+
+        config = self.config.initialize()
+        database = self.database.initialize()
+        identity = self.identity.initialize()
+        authentication = self.authentication.initialize()
+
+        return {
+            "config": config,
+            "database": database,
+            "identity": {
+                "master_id": identity.master_id,
+                "full_name": identity.full_name,
+                "username": identity.primary_username,
+                "status": identity.status,
+            },
+            "authentication": authentication,
+        }
