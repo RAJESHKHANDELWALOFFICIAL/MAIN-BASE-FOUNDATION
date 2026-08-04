@@ -95,3 +95,35 @@ class IdentityService:
             phone=row[5],
             status=row[6],
         )
+def update_identity(
+    self,
+    master_id,
+    full_name,
+    display_name,
+    username,
+    email,
+    phone,
+    status,
+):
+    self.database.execute(
+        """
+        UPDATE master_identity
+        SET
+            full_name = ?,
+            display_name = ?,
+            username = ?,
+            email = ?,
+            phone = ?,
+            status = ?
+        WHERE master_id = ?
+        """,
+        (
+            full_name,
+            display_name,
+            username,
+            email,
+            phone,
+            status,
+            master_id,
+        ),
+    )
