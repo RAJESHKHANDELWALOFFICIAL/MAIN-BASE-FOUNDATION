@@ -7,6 +7,7 @@ return {
         "Core",
         "Identity",
         "Authentication",
-        "Database"
+        "Database",
+        "Storage"
     ]
 }
