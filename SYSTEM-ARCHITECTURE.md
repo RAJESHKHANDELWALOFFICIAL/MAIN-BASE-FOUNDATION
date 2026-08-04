@@ -1,26 +1,26 @@
 # MAIN BASE FOUNDATION
 
-## Core Layers
+## CORE MODULES
 
-### Layer 1 - Core System
-- Configuration
-- Logging
-- Security
+1. Configuration
+2. Master Identity
+3. Authentication
+4. Authorization
+5. Database
+6. Storage
+7. Security
+8. API
+9. AI Core
+10. Search Engine
+11. Backup
+12. Logging
+13. Notifications
+14. Settings
 
-### Layer 2 - Identity
-- Master Identity
-- Authentication
-- Authorization
+## FUTURE PRODUCTS
 
-### Layer 3 - Data
-- Database
-- Storage
-- Backup
-
-### Layer 4 - Services
-- API
-- AI Core
-- Search
-
-### Layer 5 - Products
-- Future Products
+- GALLARYWOULT
+- SATYA VERIFY
+- Future Business Platform
+- Future Cloud
+- Future AI Products
