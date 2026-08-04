@@ -1,2 +1,7 @@
 class DatabaseConnection:
-    pass
+
+    def connect(self):
+        return {
+            "database": "MAIN BASE FOUNDATION",
+            "status": "Connected"
+        }
