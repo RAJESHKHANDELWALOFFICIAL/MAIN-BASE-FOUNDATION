@@ -9,6 +9,7 @@ return {
         "Authentication",
         "Database",
         "Storage",
-        "Security"
+        "Security",
+        "API"
     ]
 }
