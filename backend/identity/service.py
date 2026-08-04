@@ -1,7 +1,11 @@
 from backend.identity.model import MasterIdentity
+from backend.database.service import DatabaseService
 
 
 class IdentityService:
+
+    def __init__(self):
+        self.database = DatabaseService()
 
     def create_identity(
         self,
@@ -21,8 +25,36 @@ class IdentityService:
             phone=phone,
         )
 
+    def save_identity(self, identity):
+        self.database.execute(
+            """
+            INSERT OR REPLACE INTO master_identity
+            (
+                master_id,
+                full_name,
+                display_name,
+                username,
+                email,
+                phone,
+                status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                identity.master_id,
+                identity.full_name,
+                identity.display_name,
+                identity.primary_username,
+                identity.email,
+                identity.phone,
+                identity.status,
+            ),
+        )
+
     def initialize(self):
-        return self.create_identity(
+        self.database.initialize()
+
+        identity = self.create_identity(
             master_id="MBF-000001",
             full_name="DR RAJESH KHANDELWAL IBC",
             display_name="DR RAJESH KHANDELWAL IBC",
@@ -30,3 +62,7 @@ class IdentityService:
             email="demo@example.com",
             phone="+910000000000",
         )
+
+        self.save_identity(identity)
+
+        return identity
