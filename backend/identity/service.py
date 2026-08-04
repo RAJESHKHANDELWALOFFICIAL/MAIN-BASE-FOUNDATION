@@ -66,3 +66,32 @@ class IdentityService:
         self.save_identity(identity)
 
         return identity
+    def get_identity(self, master_id):
+        row = self.database.fetchone(
+            """
+            SELECT
+                master_id,
+                full_name,
+                display_name,
+                username,
+                email,
+                phone,
+                status
+            FROM master_identity
+            WHERE master_id = ?
+            """,
+            (master_id,),
+        )
+
+        if row is None:
+            return None
+
+        return MasterIdentity(
+            master_id=row[0],
+            full_name=row[1],
+            display_name=row[2],
+            primary_username=row[3],
+            email=row[4],
+            phone=row[5],
+            status=row[6],
+        )
