@@ -1,0 +1,5 @@
+APP_NAME = "MAIN BASE FOUNDATION"
+
+VERSION = "1.0"
+
+STATUS = "Development"
