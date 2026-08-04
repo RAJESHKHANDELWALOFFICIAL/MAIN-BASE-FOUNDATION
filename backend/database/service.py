@@ -23,3 +23,9 @@ class DatabaseService:
             "database": "SQLite",
             "status": "Initialized"
         }
+
+    def execute(self, query, parameters=()):
+        cursor = self.connection.cursor()
+        cursor.execute(query, parameters)
+        self.connection.commit()
+        return cursor
