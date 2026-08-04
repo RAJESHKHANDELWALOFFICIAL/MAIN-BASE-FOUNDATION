@@ -6,6 +6,7 @@ return {
         "Config",
         "Core",
         "Identity",
-        "Authentication"
+        "Authentication",
+        "Database"
     ]
 }
