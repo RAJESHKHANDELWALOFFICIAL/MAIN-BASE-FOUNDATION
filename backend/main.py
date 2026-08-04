@@ -1,14 +1,9 @@
-from backend.identity.service import IdentityService
+from backend.core.manager import FoundationManager
 
 
 def main():
-    service = IdentityService()
-
-    identity = service.create_demo_identity()
-
-    print("MAIN BASE FOUNDATION")
-    print("---------------------")
-    print(identity)
+    manager = FoundationManager()
+    print(manager.start())
 
 
 if __name__ == "__main__":
