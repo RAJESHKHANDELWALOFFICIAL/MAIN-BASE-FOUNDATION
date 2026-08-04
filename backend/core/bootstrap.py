@@ -8,6 +8,7 @@ return {
         "Identity",
         "Authentication",
         "Database",
-        "Storage"
+        "Storage",
+        "Security"
     ]
 }
