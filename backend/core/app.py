@@ -9,6 +9,7 @@ from backend.security.service import SecurityService
 from backend.api.service import APIService
 from backend.users.service import UserService
 from backend.organizations.service import OrganizationService
+from backend.roles.service import RoleService
 
 
 class MainBaseFoundation:
@@ -24,8 +25,10 @@ class MainBaseFoundation:
         self.storage = StorageService()
         self.security = SecurityService()
         self.api = APIService()
+
         self.users = UserService()
         self.organizations = OrganizationService()
+        self.roles = RoleService()
 
     def start(self):
 
@@ -38,12 +41,16 @@ class MainBaseFoundation:
         database = self.database.initialize()
         identity = self.identity.initialize()
         authentication = self.authentication.initialize()
+
         status = self.status.initialize()
+
         storage = self.storage.initialize()
         security = self.security.initialize()
         api = self.api.initialize()
+
         users = self.users.initialize()
         organizations = self.organizations.initialize()
+        roles = self.roles.initialize()
 
         self.logger.info(
             "CORE",
@@ -51,7 +58,9 @@ class MainBaseFoundation:
         )
 
         return {
+
             "config": config,
+
             "database": database,
 
             "identity": {
@@ -62,10 +71,18 @@ class MainBaseFoundation:
             },
 
             "authentication": authentication,
+
             "status": status,
+
             "storage": storage,
+
             "security": security,
+
             "api": api,
+
             "users": users,
+
             "organizations": organizations,
+
+            "roles": roles,
         }
