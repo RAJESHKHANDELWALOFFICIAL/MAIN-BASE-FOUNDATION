@@ -1,3 +1,4 @@
+from backend.status.service import StatusService
 from backend.logger.service import LoggerService
 from backend.config.service import ConfigService
 from backend.database.service import DatabaseService
