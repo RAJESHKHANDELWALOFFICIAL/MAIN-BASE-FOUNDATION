@@ -1,1 +1,8 @@
-
+✅ initialize()
+✅ create_permission()
+✅ save_permission()
+✅ get_permission()
+✅ update_permission()
+✅ delete_permission()
+✅ get_all_permissions()
+✅ search_permission_by_name()
