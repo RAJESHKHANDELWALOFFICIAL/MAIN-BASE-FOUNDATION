@@ -113,46 +113,83 @@ class UserService:
             status=row[7],
         )
 
+    def update_user(
+        self,
+        user_id,
+        full_name,
+        username,
+        email,
+        phone,
+        password,
+        role,
+        status,
+    ):
+
+        self.database.execute(
+            """
+            UPDATE users
+            SET
+                full_name = ?,
+                username = ?,
+                email = ?,
+                phone = ?,
+                password = ?,
+                role = ?,
+                status = ?
+            WHERE user_id = ?
+            """,
+            (
+                full_name,
+                username,
+                email,
+                phone,
+                password,
+                role,
+                status,
+                user_id,
+            ),
+        )
+
     def delete_user(self, user_id):
 
         self.database.execute(
-            "DELETE FROM users WHERE user_id = ?",
+            """
+            DELETE FROM users
+            WHERE user_id = ?
+            """,
             (user_id,),
         )
 
-def update_user(
-    self,
-    user_id,
-    full_name,
-    username,
-    email,
-    phone,
-    password,
-    role,
-    status,
-):
+    def get_all_users(self):
 
-    self.database.execute(
-        """
-        UPDATE users
-        SET
-            full_name = ?,
-            username = ?,
-            email = ?,
-            phone = ?,
-            password = ?,
-            role = ?,
-            status = ?
-        WHERE user_id = ?
-        """,
-        (
-            full_name,
-            username,
-            email,
-            phone,
-            password,
-            role,
-            status,
-            user_id,
-        ),
-    )
+        return self.database.fetchall(
+            """
+            SELECT
+                user_id,
+                full_name,
+                username,
+                email,
+                phone,
+                role,
+                status
+            FROM users
+            """
+        )
+
+    def search_user_by_username(self, username):
+
+        return self.database.fetchone(
+            """
+            SELECT
+                user_id,
+                full_name,
+                username,
+                email,
+                phone,
+                role,
+                status
+            FROM users
+            WHERE username = ?
+            """,
+            (username,),
+        )
