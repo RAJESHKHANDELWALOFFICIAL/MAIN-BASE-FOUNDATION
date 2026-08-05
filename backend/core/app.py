@@ -8,6 +8,8 @@ from backend.auth.service import AuthenticationService
 class MainBaseFoundation:
 
     def __init__(self):
+        self.logger = LoggerService()
+
         self.config = ConfigService()
         self.database = DatabaseService()
         self.identity = IdentityService()
@@ -15,10 +17,20 @@ class MainBaseFoundation:
 
     def start(self):
 
+        self.logger.info(
+            "CORE",
+            "MAIN BASE FOUNDATION boot started."
+        )
+
         config = self.config.initialize()
         database = self.database.initialize()
         identity = self.identity.initialize()
         authentication = self.authentication.initialize()
+
+        self.logger.info(
+            "CORE",
+            "MAIN BASE FOUNDATION boot completed successfully."
+        )
 
         return {
             "config": config,
