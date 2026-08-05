@@ -25,6 +25,3 @@ class RoleController:
 
     def list(self):
         return self.service.get_all_roles()
-
-    def search(self, role_name):
-        return self.service.search_role_by_name(role_name)
