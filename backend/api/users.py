@@ -33,7 +33,10 @@ def create_user():
         status="ACTIVE"
     )
 
-    return user
+    return {
+        "message": "User created successfully",
+        "data": user
+    }
 
 
 @router.put("/{user_id}")
