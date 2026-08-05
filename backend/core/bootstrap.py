@@ -1,18 +1,64 @@
+from backend.engines.manager import EngineManager
+from backend.engines.database.manager import DatabaseEngine
+from backend.engines.storage.manager import StorageEngine
+from backend.engines.security.manager import SecurityEngine
+from backend.engines.api.manager import APIEngine
+from backend.engines.ai.manager import AIEngine
+
+
 class Bootstrap:
 
+    def __init__(self):
+        self.engine_manager = EngineManager()
+
     def boot(self):
+
+        # Register Engines
+        self.engine_manager.register_engine(
+            "database",
+            DatabaseEngine()
+        )
+
+        self.engine_manager.register_engine(
+            "storage",
+            StorageEngine()
+        )
+
+        self.engine_manager.register_engine(
+            "security",
+            SecurityEngine()
+        )
+
+        self.engine_manager.register_engine(
+            "api",
+            APIEngine()
+        )
+
+        self.engine_manager.register_engine(
+            "ai",
+            AIEngine()
+        )
+
+        # Start All Engines
+        self.engine_manager.start_all()
+
         return {
             "foundation": "MAIN BASE FOUNDATION",
-            "version": "1.0",
-            "status": "BOOT SUCCESS",
+            "version": "1.0.0",
+            "status": "RUNNING",
+            "engines": self.engine_manager.engine_status(),
             "modules": [
-                "Config",
                 "Core",
+                "Config",
                 "Identity",
                 "Authentication",
                 "Database",
                 "Storage",
                 "Security",
-                "API"
+                "API",
+                "Users",
+                "Organizations",
+                "Roles",
+                "Permissions",
             ]
         }
