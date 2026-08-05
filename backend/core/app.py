@@ -1,9 +1,12 @@
-from backend.status.service import StatusService
 from backend.logger.service import LoggerService
 from backend.config.service import ConfigService
 from backend.database.service import DatabaseService
 from backend.identity.service import IdentityService
 from backend.auth.service import AuthenticationService
+from backend.status.service import StatusService
+from backend.storage.service import StorageService
+from backend.security.service import SecurityService
+from backend.api.service import APIService
 
 
 class MainBaseFoundation:
@@ -16,6 +19,9 @@ class MainBaseFoundation:
         self.identity = IdentityService()
         self.authentication = AuthenticationService()
         self.status = StatusService()
+        self.storage = StorageService()
+        self.security = SecurityService()
+        self.api = APIService()
 
     def start(self):
 
@@ -29,6 +35,9 @@ class MainBaseFoundation:
         identity = self.identity.initialize()
         authentication = self.authentication.initialize()
         status = self.status.initialize()
+        storage = self.storage.initialize()
+        security = self.security.initialize()
+        api = self.api.initialize()
 
         self.logger.info(
             "CORE",
@@ -46,4 +55,7 @@ class MainBaseFoundation:
             },
             "authentication": authentication,
             "status": status,
+            "storage": storage,
+            "security": security,
+            "api": api,
         }
