@@ -1,3 +1,4 @@
+from backend.logger.service import LoggerService
 from backend.config.service import ConfigService
 from backend.database.service import DatabaseService
 from backend.identity.service import IdentityService
