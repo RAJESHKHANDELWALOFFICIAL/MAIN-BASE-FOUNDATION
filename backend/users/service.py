@@ -119,3 +119,40 @@ class UserService:
             "DELETE FROM users WHERE user_id = ?",
             (user_id,),
         )
+
+def update_user(
+    self,
+    user_id,
+    full_name,
+    username,
+    email,
+    phone,
+    password,
+    role,
+    status,
+):
+
+    self.database.execute(
+        """
+        UPDATE users
+        SET
+            full_name = ?,
+            username = ?,
+            email = ?,
+            phone = ?,
+            password = ?,
+            role = ?,
+            status = ?
+        WHERE user_id = ?
+        """,
+        (
+            full_name,
+            username,
+            email,
+            phone,
+            password,
+            role,
+            status,
+            user_id,
+        ),
+    )
