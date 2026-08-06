@@ -20,3 +20,18 @@ class IdentityController:
     def list(self):
         return self.service.list_identity()
         
+    def update(self, identity):
+        self.service.update_identity(identity)
+
+    def delete(self, master_id):
+        self.service.delete_identity(master_id)
+
+    def search(self, keyword):
+        return self.service.search_identity(keyword)
+
+    def verify(self, master_id):
+        return self.service.verify_identity(master_id)
+
+    def exists(self, master_id):
+        return self.service.identity_exists(master_id)
+        
