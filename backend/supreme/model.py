@@ -6,39 +6,35 @@ from typing import Optional
 @dataclass
 class SupremeOwner:
 
-    # Database ID
+    # Database
     id: Optional[int] = None
 
     # Supreme Identity
     supreme_id: str = ""
 
-    # Main Identity
+    # Personal Information
     owner_name: str = ""
-
     username: str = ""
-
     email: str = ""
-
     phone: str = ""
-
     password: str = ""
 
-    # Access
+    # Access Control
     role: str = "SUPREME_OWNER"
-
     level: int = 100
-
     status: str = "ACTIVE"
 
     # Security
     two_factor_enabled: bool = False
-
     recovery_email: Optional[str] = None
-
     recovery_phone: Optional[str] = None
 
-    # Theme
+    # Dashboard
     dashboard_name: str = "🔱 🕉️ SUPREME SHIV SHAKTI SYSTEM 🕉️ 🔱"
+    dashboard_theme: str = "SUPREME"
+
+    # System
+    system_version: str = "1.0.0"
 
     # Audit
     created_at: str = field(
