@@ -13,8 +13,7 @@ class IdentityService:
         self.generator = IdentityGenerator()
 
         self.validator = IdentityValidator()
-
-    def initialize(self):
+            def initialize(self):
 
         self.database.initialize()
 
@@ -70,76 +69,4 @@ class IdentityService:
             "identity": "Initialized",
             "status": "READY"
         }
-
-    def create_identity(
-
-        self,
-
-        supreme_id,
-
-        full_name,
-
-        display_name,
-
-        username,
-
-        email,
-
-        phone,
-
-        country="",
-
-        state="",
-
-        city=""
-
-    ):
-
-        if not self.validator.validate_username(username):
-            raise ValueError("Invalid Username")
-
-        if not self.validator.validate_email(email):
-            raise ValueError("Invalid Email")
-
-        if not self.validator.validate_phone(phone):
-            raise ValueError("Invalid Phone")
-
-        return MasterIdentity(
-
-            master_id=self.generator.generate_master_id(),
-
-            identity_id=self.generator.generate_identity_id(),
-
-            supreme_id=supreme_id,
-
-            full_name=full_name,
-
-            display_name=display_name,
-
-            username=username,
-
-            email=email,
-
-            phone=phone,
-
-            country=country,
-
-            state=state,
-
-            city=city
-
-        )
-        save_identity()
-
-get_identity()
-
-list_identity()
-update_identity()
-
-delete_identity()
-
-search_identity()
-verify_identity()
-
-identity_exists()
-
+        
