@@ -1,4 +1,5 @@
 from backend.engines.manager import EngineManager
+
 from backend.engines.database.manager import DatabaseEngine
 from backend.engines.storage.manager import StorageEngine
 from backend.engines.security.manager import SecurityEngine
@@ -11,9 +12,8 @@ class Bootstrap:
     def __init__(self):
         self.engine_manager = EngineManager()
 
-    def boot(self):
+    def register_engines(self):
 
-        # Register Engines
         self.engine_manager.register_engine(
             "database",
             DatabaseEngine()
@@ -39,7 +39,10 @@ class Bootstrap:
             AIEngine()
         )
 
-        # Start All Engines
+    def boot(self):
+
+        self.register_engines()
+
         self.engine_manager.start_all()
 
         return {
@@ -61,4 +64,12 @@ class Bootstrap:
                 "Roles",
                 "Permissions",
             ]
+        }
+
+    def shutdown(self):
+
+        self.engine_manager.stop_all()
+
+        return {
+            "status": "STOPPED"
         }
