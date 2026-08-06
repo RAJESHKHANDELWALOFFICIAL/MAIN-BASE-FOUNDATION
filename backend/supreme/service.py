@@ -76,9 +76,7 @@ class SupremeService:
         recovery_phone=None,
         dashboard_name="🔱 🕉️ SUPREME SHIV SHAKTI SYSTEM 🕉️ 🔱",
         dashboard_theme="SUPREME",
-        system_version="1.0.0",
-        created_at="",
-        updated_at=""
+        system_version="1.0.0"
     ):
 
         return SupremeOwner(
@@ -97,16 +95,14 @@ class SupremeService:
             recovery_phone=recovery_phone,
             dashboard_name=dashboard_name,
             dashboard_theme=dashboard_theme,
-            system_version=system_version,
-            created_at=created_at,
-            updated_at=updated_at
+            system_version=system_version
         )
 
     def save_owner(self, owner):
 
         self.database.execute(
             """
-            INSERT INTO supreme_owner (
+            INSERT OR REPLACE INTO supreme_owner (
                 master_id,
                 supreme_id,
                 owner_name,
@@ -139,7 +135,7 @@ class SupremeService:
                 owner.role,
                 owner.level,
                 owner.status,
-                owner.two_factor_enabled,
+                int(owner.two_factor_enabled),
                 owner.recovery_email,
                 owner.recovery_phone,
                 owner.dashboard_name,
@@ -156,42 +152,6 @@ class SupremeService:
             "SELECT * FROM supreme_owner LIMIT 1"
         )
 
-    def update_owner(self, owner):
-
-        self.database.execute(
-            """
-            UPDATE supreme_owner
-            SET
-                owner_name=?,
-                username=?,
-                email=?,
-                phone=?,
-                password=?,
-                dashboard_name=?,
-                dashboard_theme=?,
-                updated_at=?
-            WHERE supreme_id=?
-            """,
-            (
-                owner.owner_name,
-                owner.username,
-                owner.email,
-                owner.phone,
-                owner.password,
-                owner.dashboard_name,
-                owner.dashboard_theme,
-                owner.updated_at,
-                owner.supreme_id
-            )
-        )
-
-    def delete_owner(self, supreme_id):
-
-        self.database.execute(
-            "DELETE FROM supreme_owner WHERE supreme_id=?",
-            (supreme_id,)
-        )
-
     def list_owner(self):
 
         return self.database.fetchall(
@@ -206,15 +166,74 @@ class SupremeService:
 
         return row is not None
 
-    def login(self, username):
+    def update_owner(self, owner):
+
+        self.database.execute(
+            """
+            UPDATE supreme_owner
+            SET
+                owner_name=?,
+                username=?,
+                email=?,
+                phone=?,
+                password=?,
+                role=?,
+                level=?,
+                status=?,
+                two_factor_enabled=?,
+                recovery_email=?,
+                recovery_phone=?,
+                dashboard_name=?,
+                dashboard_theme=?,
+                system_version=?,
+                updated_at=?
+            WHERE supreme_id=?
+            """,
+            (
+                owner.owner_name,
+                owner.username,
+                owner.email,
+                owner.phone,
+                owner.password,
+                owner.role,
+                owner.level,
+                owner.status,
+                int(owner.two_factor_enabled),
+                owner.recovery_email,
+                owner.recovery_phone,
+                owner.dashboard_name,
+                owner.dashboard_theme,
+                owner.system_version,
+                owner.updated_at,
+                owner.supreme_id
+            )
+        )
+
+    def delete_owner(self, supreme_id):
+
+        self.database.execute(
+            """
+            DELETE FROM supreme_owner
+            WHERE supreme_id=?
+            """,
+            (supreme_id,)
+        )
+
+    def login(self, identifier):
 
         return self.database.fetchone(
             """
             SELECT *
             FROM supreme_owner
             WHERE username=?
+               OR email=?
+               OR phone=?
             """,
-            (username,)
+            (
+                identifier,
+                identifier,
+                identifier
+            )
         )
 
     def logout(self):
