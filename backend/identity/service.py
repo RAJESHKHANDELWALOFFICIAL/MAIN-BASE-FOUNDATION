@@ -147,6 +147,8 @@ class IdentityService:
                 identity.updated_at,
             ),
         )
+
+    
     def get_identity(self, master_id):
 
         row = self.database.fetchone(
