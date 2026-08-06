@@ -226,3 +226,60 @@ class IdentityService:
 
         return identities
         
+    def update_identity(self, identity):
+
+        self.database.execute(
+            """
+            UPDATE master_identity
+            SET
+
+                full_name = ?,
+                display_name = ?,
+                username = ?,
+                email = ?,
+                phone = ?,
+                country = ?,
+                state = ?,
+                city = ?,
+                language = ?,
+                timezone = ?,
+                status = ?,
+                verified = ?,
+                profile_photo = ?,
+                profile_type = ?,
+                version = ?,
+                updated_at = ?
+
+            WHERE master_id = ?
+            """,
+            (
+                identity.full_name,
+                identity.display_name,
+                identity.username,
+                identity.email,
+                identity.phone,
+                identity.country,
+                identity.state,
+                identity.city,
+                identity.language,
+                identity.timezone,
+                identity.status,
+                int(identity.verified),
+                identity.profile_photo,
+                identity.profile_type,
+                identity.version,
+                identity.updated_at,
+                identity.master_id,
+            ),
+        )
+
+    def delete_identity(self, master_id):
+
+        self.database.execute(
+            """
+            DELETE FROM master_identity
+            WHERE master_id = ?
+            """,
+            (master_id,),
+        )
+        
