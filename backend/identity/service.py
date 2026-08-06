@@ -283,3 +283,58 @@ class IdentityService:
             (master_id,),
         )
         
+    def search_identity(self, keyword):
+
+        return self.database.fetchall(
+            """
+            SELECT *
+            FROM master_identity
+            WHERE
+                master_id = ?
+                OR identity_id = ?
+                OR username = ?
+                OR email = ?
+                OR phone = ?
+                OR full_name LIKE ?
+                OR display_name LIKE ?
+            """,
+            (
+                keyword,
+                keyword,
+                keyword,
+                keyword,
+                keyword,
+                f"%{keyword}%",
+                f"%{keyword}%"
+            ),
+        )
+
+    def identity_exists(self, master_id):
+
+        row = self.database.fetchone(
+            """
+            SELECT id
+            FROM master_identity
+            WHERE master_id = ?
+            """,
+            (master_id,),
+        )
+
+        return row is not None
+
+    def verify_identity(self, master_id):
+
+        self.database.execute(
+            """
+            UPDATE master_identity
+            SET
+                verified = 1
+            WHERE master_id = ?
+            """,
+            (master_id,),
+        )
+
+        return {
+            "status": "IDENTITY VERIFIED"
+        }
+        
