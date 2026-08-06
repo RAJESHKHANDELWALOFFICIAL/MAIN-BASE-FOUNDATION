@@ -147,3 +147,82 @@ class IdentityService:
                 identity.updated_at,
             ),
         )
+    def get_identity(self, master_id):
+
+        row = self.database.fetchone(
+            """
+            SELECT *
+            FROM master_identity
+            WHERE master_id = ?
+            """,
+            (master_id,),
+        )
+
+        if row is None:
+            return None
+
+        return MasterIdentity(
+            id=row[0],
+            master_id=row[1],
+            identity_id=row[2],
+            supreme_id=row[3],
+            full_name=row[4],
+            display_name=row[5],
+            username=row[6],
+            email=row[7],
+            phone=row[8],
+            country=row[9],
+            state=row[10],
+            city=row[11],
+            language=row[12],
+            timezone=row[13],
+            status=row[14],
+            verified=bool(row[15]),
+            profile_photo=row[16],
+            profile_type=row[17],
+            version=row[18],
+            created_at=row[19],
+            updated_at=row[20],
+        )
+
+    def list_identity(self):
+
+        rows = self.database.fetchall(
+            """
+            SELECT *
+            FROM master_identity
+            """
+        )
+
+        identities = []
+
+        for row in rows:
+
+            identities.append(
+                MasterIdentity(
+                    id=row[0],
+                    master_id=row[1],
+                    identity_id=row[2],
+                    supreme_id=row[3],
+                    full_name=row[4],
+                    display_name=row[5],
+                    username=row[6],
+                    email=row[7],
+                    phone=row[8],
+                    country=row[9],
+                    state=row[10],
+                    city=row[11],
+                    language=row[12],
+                    timezone=row[13],
+                    status=row[14],
+                    verified=bool(row[15]),
+                    profile_photo=row[16],
+                    profile_type=row[17],
+                    version=row[18],
+                    created_at=row[19],
+                    updated_at=row[20],
+                )
+            )
+
+        return identities
+        
