@@ -9,6 +9,9 @@ class SupremeOwner:
     # Database
     id: Optional[int] = None
 
+    # Master Identity
+    master_id: str = ""
+
     # Supreme Identity
     supreme_id: str = ""
 
