@@ -1,12 +1,45 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Optional
 
 
 @dataclass
 class MasterIdentity:
-    master_id: str
-    full_name: str
-    display_name: str
-    primary_username: str
-    email: str
-    phone: str
-    status: str = "active"
+
+    # Database
+    id: Optional[int] = None
+
+    # Global Identity
+    master_id: str = ""
+    identity_id: str = ""
+
+    # Owner
+    supreme_id: str = ""
+
+    # Personal Information
+    full_name: str = ""
+    username: str = ""
+    email: str = ""
+    phone: str = ""
+
+    # Location
+    country: str = ""
+    state: str = ""
+    city: str = ""
+
+    # Preferences
+    language: str = "en"
+    timezone: str = "UTC"
+
+    # Status
+    status: str = "ACTIVE"
+    verified: bool = False
+
+    # Audit
+    created_at: str = field(
+        default_factory=lambda: datetime.utcnow().isoformat()
+    )
+
+    updated_at: str = field(
+        default_factory=lambda: datetime.utcnow().isoformat()
+    )
