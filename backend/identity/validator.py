@@ -5,7 +5,8 @@ class IdentityValidator:
 
     @staticmethod
     def validate_username(username):
-        return len(username) >= 3
+        pattern = r"^[A-Za-z0-9._]{3,50}$"
+        return re.match(pattern, username) is not None
 
     @staticmethod
     def validate_email(email):
