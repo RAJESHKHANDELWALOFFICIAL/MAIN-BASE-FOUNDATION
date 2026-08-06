@@ -6,6 +6,7 @@ class IdentityController:
     def __init__(self):
 
         self.service = IdentityService()
+        
     def initialize(self):
         return self.service.initialize()
 
