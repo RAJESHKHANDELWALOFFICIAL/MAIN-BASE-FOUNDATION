@@ -13,12 +13,15 @@ class MasterIdentity:
     master_id: str = ""
     identity_id: str = ""
 
-    # Owner
+    # Supreme Owner
     supreme_id: str = ""
 
     # Personal Information
     full_name: str = ""
+    display_name: str = ""
     username: str = ""
+
+    # Contact
     email: str = ""
     phone: str = ""
 
