@@ -17,3 +17,30 @@ CREATE TABLE IF NOT EXISTS roles (
 
 )
 """)
+
+def save_role(self, role):
+
+    self.database.execute(
+        """
+        INSERT OR REPLACE INTO roles
+        (
+            role_id,
+            role_name,
+            description,
+            level,
+            status,
+            created_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            role.role_id,
+            role.role_name,
+            role.description,
+            role.level,
+            role.status,
+            role.created_at,
+            role.updated_at,
+        ),
+    )
