@@ -5,6 +5,7 @@ from backend.api.businesses import router as businesses_router
 from backend.api.projects import router as projects_router
 from backend.api.supreme import router as supreme_router
 from backend.api.identity import router as identity_router
+from backend.api.auth import router as auth_router
 
 
 app = FastAPI(
@@ -22,6 +23,7 @@ app.include_router(businesses_router)
 app.include_router(projects_router)
 app.include_router(supreme_router)
 app.include_router(identity_router)
+app.include_router(auth_router)
 
 
 # ==========================
