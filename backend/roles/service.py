@@ -78,3 +78,34 @@ class RoleService:
                 role.updated_at,
             ),
         )
+def get_role(self, role_id):
+
+    row = self.database.fetchone(
+        """
+        SELECT
+            role_id,
+            role_name,
+            description,
+            level,
+            status,
+            created_at,
+            updated_at
+        FROM roles
+        WHERE role_id = ?
+        """,
+        (role_id,),
+    )
+
+    if row is None:
+        return None
+
+    return Role(
+        role_id=row[0],
+        role_name=row[1],
+        description=row[2],
+        level=row[3],
+        status=row[4],
+        created_at=row[5],
+        updated_at=row[6],
+    )
+    
