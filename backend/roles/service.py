@@ -109,3 +109,32 @@ def get_role(self, role_id):
         updated_at=row[6],
     )
     
+def update_role(
+    self,
+    role_id,
+    role_name,
+    description,
+    level,
+    status,
+):
+
+    self.database.execute(
+        """
+        UPDATE roles
+        SET
+            role_name = ?,
+            description = ?,
+            level = ?,
+            status = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE role_id = ?
+        """,
+        (
+            role_name,
+            description,
+            level,
+            status,
+            role_id,
+        ),
+    )
+    
