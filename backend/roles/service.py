@@ -148,3 +148,38 @@ def delete_role(self, role_id):
         (role_id,),
     )
     
+def get_all_roles(self):
+
+    rows = self.database.fetchall(
+        """
+        SELECT
+            role_id,
+            role_name,
+            description,
+            level,
+            status,
+            created_at,
+            updated_at
+        FROM roles
+        ORDER BY role_name
+        """
+    )
+
+    roles = []
+
+    for row in rows:
+
+        roles.append(
+            Role(
+                role_id=row[0],
+                role_name=row[1],
+                description=row[2],
+                level=row[3],
+                status=row[4],
+                created_at=row[5],
+                updated_at=row[6],
+            )
+        )
+
+    return roles
+    
