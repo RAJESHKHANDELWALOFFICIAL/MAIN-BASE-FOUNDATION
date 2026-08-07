@@ -32,3 +32,21 @@ CREATE TABLE IF NOT EXISTS master_identity (
     updated_at TEXT
 
 )
+    def commit(self):
+        self.connection.commit()
+
+    def rollback(self):
+        self.connection.rollback()
+
+    def close(self):
+        self.connection.close()
+
+    def cursor(self):
+        return self.connection.cursor()
+
+    def health(self):
+        return {
+            "database": "SQLite",
+            "status": "CONNECTED"
+        }
+        
