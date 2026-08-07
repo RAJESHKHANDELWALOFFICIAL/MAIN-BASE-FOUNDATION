@@ -3,14 +3,14 @@ CREATE TABLE IF NOT EXISTS roles (
 
     id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    role_id TEXT UNIQUE,
-    role_name TEXT UNIQUE,
+    role_id TEXT UNIQUE NOT NULL,
+    role_name TEXT UNIQUE NOT NULL,
 
     description TEXT,
 
-    level INTEGER,
+    level INTEGER DEFAULT 1,
 
-    status TEXT,
+    status TEXT DEFAULT 'ACTIVE',
 
     created_at TEXT,
     updated_at TEXT
