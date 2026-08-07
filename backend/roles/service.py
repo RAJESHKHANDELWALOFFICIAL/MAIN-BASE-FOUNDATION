@@ -138,3 +138,13 @@ def update_role(
         ),
     )
     
+def delete_role(self, role_id):
+
+    self.database.execute(
+        """
+        DELETE FROM roles
+        WHERE role_id = ?
+        """,
+        (role_id,),
+    )
+    
