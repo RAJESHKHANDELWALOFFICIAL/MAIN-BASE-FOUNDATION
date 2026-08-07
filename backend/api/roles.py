@@ -1,5 +1,7 @@
 from fastapi import APIRouter
+
 from backend.roles.controller import RoleController
+
 
 router = APIRouter(
     prefix="/roles",
@@ -26,11 +28,12 @@ def create_role():
         role_id="ROLE-000001",
         role_name="ADMIN",
         description="System Administrator",
+        level=1,
         status="ACTIVE"
     )
 
     return {
-        "message": "Role created successfully",
+        "message": "Role Created Successfully",
         "data": role
     }
 
@@ -41,12 +44,13 @@ def update_role(role_id: str):
     controller.update(
         role_id=role_id,
         role_name="SUPER ADMIN",
-        description="Updated Administrator",
+        description="Updated System Administrator",
+        level=1,
         status="ACTIVE"
     )
 
     return {
-        "message": "Role updated successfully"
+        "message": "Role Updated Successfully"
     }
 
 
@@ -56,5 +60,5 @@ def delete_role(role_id: str):
     controller.delete(role_id)
 
     return {
-        "message": "Role deleted successfully"
+        "message": "Role Deleted Successfully"
     }
