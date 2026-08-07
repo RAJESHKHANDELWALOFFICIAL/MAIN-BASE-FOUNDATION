@@ -1,37 +1,131 @@
-CREATE TABLE IF NOT EXISTS master_identity (
+from backend.database.connection import DatabaseConnection
 
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    master_id TEXT UNIQUE,
-    identity_id TEXT UNIQUE,
-    supreme_id TEXT,
+class DatabaseService:
 
-    full_name TEXT,
-    display_name TEXT,
-    username TEXT UNIQUE,
+    def __init__(self):
+        self.connection = DatabaseConnection().connect()
 
-    email TEXT,
-    phone TEXT,
+    def initialize(self):
 
-    country TEXT,
-    state TEXT,
-    city TEXT,
+        cursor = self.connection.cursor()
 
-    language TEXT,
-    timezone TEXT,
+        # ==========================
+        # SYSTEM INFO
+        # ==========================
 
-    status TEXT,
-    verified INTEGER,
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS system_info (
 
-    profile_photo TEXT,
-    profile_type TEXT,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    version TEXT,
+            foundation TEXT,
+            version TEXT
 
-    created_at TEXT,
-    updated_at TEXT
+        )
+        """)
 
-)
+        # ==========================
+        # MASTER IDENTITY
+        # ==========================
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS master_identity (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            master_id TEXT UNIQUE,
+            identity_id TEXT UNIQUE,
+            supreme_id TEXT,
+
+            full_name TEXT,
+            display_name TEXT,
+            username TEXT UNIQUE,
+
+            email TEXT,
+            phone TEXT,
+
+            country TEXT,
+            state TEXT,
+            city TEXT,
+
+            language TEXT,
+            timezone TEXT,
+
+            status TEXT,
+            verified INTEGER,
+
+            profile_photo TEXT,
+            profile_type TEXT,
+
+            version TEXT,
+
+            created_at TEXT,
+            updated_at TEXT
+
+        )
+        """)
+
+        # ==========================
+        # SUPREME OWNER
+        # ==========================
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS supreme_owner (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            master_id TEXT UNIQUE,
+            supreme_id TEXT UNIQUE,
+
+            owner_name TEXT,
+            username TEXT UNIQUE,
+            email TEXT,
+            phone TEXT,
+            password TEXT,
+
+            role TEXT,
+            level INTEGER,
+            status TEXT,
+
+            two_factor_enabled INTEGER,
+            recovery_email TEXT,
+            recovery_phone TEXT,
+
+            dashboard_name TEXT,
+            dashboard_theme TEXT,
+
+            system_version TEXT,
+
+            created_at TEXT,
+            updated_at TEXT
+
+        )
+        """)
+
+        self.connection.commit()
+
+        return {
+            "database": "SQLite",
+            "status": "Initialized"
+        }
+
+    def execute(self, query, parameters=()):
+        cursor = self.connection.cursor()
+        cursor.execute(query, parameters)
+        self.connection.commit()
+        return cursor
+
+    def fetchone(self, query, parameters=()):
+        cursor = self.connection.cursor()
+        cursor.execute(query, parameters)
+        return cursor.fetchone()
+
+    def fetchall(self, query, parameters=()):
+        cursor = self.connection.cursor()
+        cursor.execute(query, parameters)
+        return cursor.fetchall()
+
     def commit(self):
         self.connection.commit()
 
@@ -49,4 +143,3 @@ CREATE TABLE IF NOT EXISTS master_identity (
             "database": "SQLite",
             "status": "CONNECTED"
         }
-        
