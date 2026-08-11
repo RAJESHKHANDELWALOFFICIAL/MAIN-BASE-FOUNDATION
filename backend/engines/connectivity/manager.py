@@ -136,3 +136,15 @@ class ConnectivityEngine(BaseEngine):
         self.stop()
         return self.start()
 
+if __name__ == "__main__":
+    engine = ConnectivityEngine()
+
+    print("=" * 60)
+    print("MAIN BASE FOUNDATION")
+    print("CONNECTIVITY ENGINE")
+    print("=" * 60)
+
+    print(engine.start())
+
+    print("=" * 60)
+
