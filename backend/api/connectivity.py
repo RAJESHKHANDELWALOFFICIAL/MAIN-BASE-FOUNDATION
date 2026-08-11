@@ -7,6 +7,11 @@ class ConnectivityAPI:
     def __init__(self):
         self.engine = ConnectivityEngine()
 
+        def status(self) -> dict:
+        """Return the current connectivity status."""
+
+        return self.engine.detect()
+
     def start(self) -> dict:
         """Start the connectivity engine."""
 
