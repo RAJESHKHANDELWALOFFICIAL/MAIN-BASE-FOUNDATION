@@ -60,3 +60,43 @@ class ConnectivityEngine(BaseEngine):
         except OSError:
             return False
             
+
+    def detect(self) -> dict:
+        """Detect current connectivity status."""
+
+        adapters = self._adapter_information()
+
+        self.internet = self._check_internet()
+
+        self.wifi = (
+            "wi-fi" in adapters
+            or "wireless lan adapter" in adapters
+        )
+
+        self.ethernet = (
+            "ethernet adapter" in adapters
+            or "ethernet" in adapters
+        )
+
+        self.vpn = any(
+            keyword in adapters
+            for keyword in (
+                "vpn",
+                "wireguard",
+                "tap adapter",
+                "tun",
+            )
+        )
+
+        if self.internet:
+            self.health = "HEALTHY"
+        elif self.wifi or self.ethernet or self.vpn:
+            self.health = "WARNING"
+        else:
+            self.health = "OFFLINE"
+
+        self.security = "UNKNOWN"
+        self.last_check = datetime.now(timezone.utc).isoformat()
+
+        return self.connectivity_status()
+        
