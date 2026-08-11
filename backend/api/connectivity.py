@@ -26,3 +26,19 @@ class ConnectivityAPI:
         """Restart the connectivity engine."""
 
         return self.engine.restart()
+
+    def health(self) -> dict:
+        """Return connectivity health information."""
+
+        status = self.engine.detect()
+
+        return {
+            "health": status["health"],
+            "security": status["security"],
+            "internet": status["internet"],
+            "wifi": status["wifi"],
+            "ethernet": status["ethernet"],
+            "vpn": status["vpn"],
+            "last_check": status["last_check"],
+        }
+
