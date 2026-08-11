@@ -100,3 +100,18 @@ class ConnectivityEngine(BaseEngine):
 
         return self.connectivity_status()
         
+    def connectivity_status(self) -> dict:
+        """Return the current connectivity report."""
+
+        return {
+            "engine": self.name,
+            "state": self.state,
+            "internet": self.internet,
+            "wifi": self.wifi,
+            "ethernet": self.ethernet,
+            "vpn": self.vpn,
+            "health": self.health,
+            "security": self.security,
+            "last_check": self.last_check,
+        }
+
