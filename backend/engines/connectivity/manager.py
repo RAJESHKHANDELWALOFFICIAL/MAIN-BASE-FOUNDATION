@@ -7,15 +7,7 @@ from backend.engines.base import BaseEngine
 
 
 class ConnectivityEngine(BaseEngine):
-    """
-    MAIN BASE FOUNDATION Connectivity Engine.
-
-    Provides local connectivity detection and
-    connectivity health information.
-
-    External provider APIs are not required for
-    the core detection layer.
-    """
+    """MAIN BASE FOUNDATION Connectivity Engine."""
 
     def __init__(self, name: str = "ConnectivityEngine"):
         super().__init__(name)
@@ -30,7 +22,7 @@ class ConnectivityEngine(BaseEngine):
         self.last_check = None
 
     def _adapter_information(self) -> str:
-        """Return local network adapter information."""
+        """Get local network adapter information."""
 
         try:
             if platform.system() == "Windows":
@@ -56,7 +48,7 @@ class ConnectivityEngine(BaseEngine):
             return ""
 
     def _check_internet(self) -> bool:
-        """Check whether an external network connection is available."""
+        """Check whether Internet connectivity is available."""
 
         try:
             socket.create_connection(
@@ -64,12 +56,11 @@ class ConnectivityEngine(BaseEngine):
                 timeout=3,
             )
             return True
-
         except OSError:
             return False
 
     def detect(self) -> dict:
-        """Detect current local connectivity status."""
+        """Detect current connectivity status."""
 
         adapters = self._adapter_information()
 
@@ -102,9 +93,7 @@ class ConnectivityEngine(BaseEngine):
         else:
             self.health = "OFFLINE"
 
-        # Local detection alone cannot prove complete security.
         self.security = "UNKNOWN"
-
         self.last_check = datetime.now(timezone.utc).isoformat()
 
         return self.connectivity_status()
@@ -125,7 +114,7 @@ class ConnectivityEngine(BaseEngine):
         }
 
     def start(self):
-        """Start the engine and perform an initial detection."""
+        """Start the engine and perform initial detection."""
 
         super().start()
         self.detect()
