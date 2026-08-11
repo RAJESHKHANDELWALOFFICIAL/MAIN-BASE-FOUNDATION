@@ -46,3 +46,17 @@ class ConnectivityEngine(BaseEngine):
 
         except (OSError, subprocess.SubprocessError):
             return ""
+
+    def _check_internet(self) -> bool:
+        """Check whether Internet connectivity is available."""
+
+        try:
+            socket.create_connection(
+                ("1.1.1.1", 53),
+                timeout=3,
+            )
+            return True
+
+        except OSError:
+            return False
+            
