@@ -20,3 +20,29 @@ class ConnectivityEngine(BaseEngine):
         self.health = "UNKNOWN"
         self.security = "UNKNOWN"
         self.last_check = None
+
+    def _adapter_information(self) -> str:
+        """Get local network adapter information."""
+
+        try:
+            if platform.system() == "Windows":
+                result = subprocess.run(
+                    ["ipconfig"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                    check=False,
+                )
+            else:
+                result = subprocess.run(
+                    ["ip", "addr"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                    check=False,
+                )
+
+            return result.stdout.lower()
+
+        except (OSError, subprocess.SubprocessError):
+            return ""
