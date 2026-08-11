@@ -115,3 +115,24 @@ class ConnectivityEngine(BaseEngine):
             "last_check": self.last_check,
         }
 
+    def start(self):
+        """Start the engine and perform initial detection."""
+
+        super().start()
+        self.detect()
+
+        return self.connectivity_status()
+
+    def stop(self):
+        """Stop the engine."""
+
+        super().stop()
+
+        return self.connectivity_status()
+
+    def restart(self):
+        """Restart the engine and refresh connectivity state."""
+
+        self.stop()
+        return self.start()
+
