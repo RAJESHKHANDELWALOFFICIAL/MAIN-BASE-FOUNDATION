@@ -148,3 +148,58 @@ if __name__ == "__main__":
 
     print("=" * 60)
 
+    def scan_networks(self) -> list:
+        """Scan visible Wi-Fi networks without collecting passwords."""
+
+        networks = []
+
+        try:
+            if platform.system() == "Windows":
+                result = subprocess.run(
+                    [
+                        "netsh",
+                        "wlan",
+                        "show",
+                        "networks",
+                        "mode=bssid",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    check=False,
+                )
+
+                output = result.stdout
+
+                current_network = None
+
+                for line in output.splitlines():
+                    line = line.strip()
+
+                    if line.startswith("SSID"):
+                        parts = line.split(":", 1)
+
+                        if len(parts) == 2:
+                            ssid = parts[1].strip()
+
+                            if ssid:
+                                current_network = {
+                                    "ssid": ssid,
+                                    "security": "UNKNOWN",
+                                }
+                                networks.append(current_network)
+
+                    elif (
+                        current_network
+                        and "Authentication" in line
+                    ):
+                        parts = line.split(":", 1)
+
+                        if len(parts) == 2:
+                            current_network["security"] = parts[1].strip()
+
+            return networks
+
+        except (OSError, subprocess.SubprocessError):
+            return []
+
