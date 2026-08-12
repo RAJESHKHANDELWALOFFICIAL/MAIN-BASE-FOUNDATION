@@ -1,211 +1,193 @@
-import socket
-import subprocess
 import platform
 from datetime import datetime, timezone
+from typing import Dict, List, Optional
 
-from backend.engines.base import BaseEngine
+from .detectors import ConnectivityDetector
+from .models import ConnectivityReport
+from .scanner import NetworkScanner
+from .security import ConnectivitySecurity
+
+from .platforms.android import AndroidConnectivityPlatform
+from .platforms.ios import IOSConnectivityPlatform
+from .platforms.linux import LinuxConnectivityPlatform
+from .platforms.macos import MacOSConnectivityPlatform
+from .platforms.windows import WindowsConnectivityPlatform
 
 
-class ConnectivityEngine(BaseEngine):
-    """MAIN BASE FOUNDATION Connectivity Engine."""
+class ConnectivityEngine:
+    """MAIN BASE FOUNDATION unified connectivity engine."""
 
-    def __init__(self, name: str = "ConnectivityEngine"):
-        super().__init__(name)
+    def __init__(self):
+        self.detector = ConnectivityDetector()
+        self.scanner = NetworkScanner()
+        self.security = ConnectivitySecurity()
 
-        self.internet = False
-        self.wifi = False
-        self.ethernet = False
-        self.vpn = False
+        self.platform_name = platform.system().upper()
 
-        self.health = "UNKNOWN"
-        self.security = "UNKNOWN"
-        self.last_check = None
-
-    def _adapter_information(self) -> str:
-        """Get local network adapter information."""
-
-        try:
-            if platform.system() == "Windows":
-                result = subprocess.run(
-                    ["ipconfig"],
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
-                    check=False,
-                )
-            else:
-                result = subprocess.run(
-                    ["ip", "addr"],
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
-                    check=False,
-                )
-
-            return result.stdout.lower()
-
-        except (OSError, subprocess.SubprocessError):
-            return ""
-
-    def _check_internet(self) -> bool:
-        """Check whether Internet connectivity is available."""
-
-        try:
-            socket.create_connection(
-                ("1.1.1.1", 53),
-                timeout=3,
-            )
-            return True
-
-        except OSError:
-            return False
-
-    def detect(self) -> dict:
-        """Detect current connectivity status."""
-
-        adapters = self._adapter_information()
-
-        self.internet = self._check_internet()
-
-        self.wifi = (
-            "wi-fi" in adapters
-            or "wireless lan adapter" in adapters
-        )
-
-        self.ethernet = (
-            "ethernet adapter" in adapters
-            or "ethernet" in adapters
-        )
-
-        self.vpn = any(
-            keyword in adapters
-            for keyword in (
-                "vpn",
-                "wireguard",
-                "tap adapter",
-                "tun",
-            )
-        )
-
-        if self.internet:
-            self.health = "HEALTHY"
-        elif self.wifi or self.ethernet or self.vpn:
-            self.health = "WARNING"
-        else:
-            self.health = "OFFLINE"
-
-        self.security = "UNKNOWN"
-        self.last_check = datetime.now(timezone.utc).isoformat()
-
-        return self.connectivity_status()
-
-    def connectivity_status(self) -> dict:
-        """Return the current connectivity report."""
-
-        return {
-            "engine": self.name,
-            "state": self.state,
-            "internet": self.internet,
-            "wifi": self.wifi,
-            "ethernet": self.ethernet,
-            "vpn": self.vpn,
-            "health": self.health,
-            "security": self.security,
-            "last_check": self.last_check,
+        self.platforms = {
+            "WINDOWS": WindowsConnectivityPlatform(),
+            "LINUX": LinuxConnectivityPlatform(),
+            "DARWIN": MacOSConnectivityPlatform(),
+            "ANDROID": AndroidConnectivityPlatform(),
+            "IOS": IOSConnectivityPlatform(),
+            "IPADOS": IOSConnectivityPlatform(),
         }
 
-    def scan_networks(self) -> list:
-        """Scan visible Wi-Fi networks without collecting passwords."""
+        self.report = ConnectivityReport()
 
-        networks = []
+    def _platform_adapter(self):
+        """Return the adapter for the current platform."""
 
-        try:
-            if platform.system() != "Windows":
-                return networks
+        return self.platforms.get(
+            self.platform_name
+        )
 
-            result = subprocess.run(
-                [
-                    "netsh",
-                    "wlan",
-                    "show",
-                    "networks",
-                    "mode=bssid",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=10,
-                check=False,
+    def detect(self) -> dict:
+        """Build a unified connectivity report."""
+
+        device = self.detector.device_information()
+        state = self.detector.connectivity_state()
+
+        adapter = self._platform_adapter()
+
+        wifi = False
+        ethernet = False
+        vpn = False
+        hotspot = False
+        capabilities: Dict[str, bool] = {}
+
+        if adapter:
+            capabilities = adapter.capabilities()
+
+            platform_state = adapter.connectivity()
+
+            wifi = bool(
+                platform_state.get("wifi") is True
             )
 
-            output = result.stdout
-            current_network = None
+            ethernet = bool(
+                platform_state.get("ethernet") is True
+            )
 
-            for line in output.splitlines():
-                line = line.strip()
+            vpn = bool(
+                platform_state.get("vpn") is True
+            )
 
-                if line.startswith("SSID"):
-                    parts = line.split(":", 1)
+            hotspot = bool(
+                platform_state.get("hotspot") is True
+            )
 
-                    if len(parts) == 2:
-                        ssid = parts[1].strip()
+        visible_networks = self.scanner.scan()
 
-                        if ssid:
-                            current_network = {
-                                "ssid": ssid,
-                                "security": "UNKNOWN",
-                            }
-                            networks.append(current_network)
+        current_network: Optional[str] = None
 
-                elif (
-                    current_network
-                    and "Authentication" in line
-                ):
-                    parts = line.split(":", 1)
+        if visible_networks:
+            current_network = (
+                visible_networks[0].ssid
+            )
 
-                    if len(parts) == 2:
-                        current_network["security"] = parts[1].strip()
+        network_security = "UNKNOWN"
 
-            return networks
+        if visible_networks:
+            network_security = (
+                visible_networks[0].security
+            )
 
-        except (OSError, subprocess.SubprocessError):
-            return []
+        security_result = self.security.assess(
+            internet=bool(
+                state["internet"]
+            ),
+            wifi=wifi,
+            ethernet=ethernet,
+            hotspot=hotspot,
+            vpn=vpn,
+            current_network=current_network,
+            network_security=network_security,
+        )
+
+        self.report = ConnectivityReport(
+            device=device,
+            internet=bool(
+                state["internet"]
+            ),
+            wifi=wifi,
+            ethernet=ethernet,
+            hotspot=hotspot,
+            vpn=vpn,
+            current_network=current_network,
+            interfaces=self.detector.network_interfaces(),
+            visible_networks=visible_networks,
+            health=str(
+                state["health"]
+            ),
+            security=str(
+                security_result["security"]
+            ),
+            status=str(
+                state["status"]
+            ),
+            reason=str(
+                state["reason"]
+            ),
+            last_check=datetime.now(
+                timezone.utc
+            ).isoformat(),
+            capabilities=capabilities,
+        )
+
+        return self.report.to_dict()
+
+    def status(self) -> dict:
+        """Return the current connectivity report."""
+
+        return self.detect()
+
+    def networks(self) -> list:
+        """Return safely discoverable visible networks."""
+
+        return [
+            {
+                "ssid": network.ssid,
+                "security": network.security,
+                "signal": network.signal,
+                "channel": network.channel,
+                "bssids": network.bssids,
+            }
+            for network in self.scanner.scan()
+        ]
+
+    def health(self) -> dict:
+        """Return connectivity health information."""
+
+        report = self.detect()
+
+        return {
+            "health": report["health"],
+            "security": report["security"],
+            "internet": report["internet"],
+            "wifi": report["wifi"],
+            "ethernet": report["ethernet"],
+            "hotspot": report["hotspot"],
+            "vpn": report["vpn"],
+            "status": report["status"],
+            "last_check": report["last_check"],
+        }
 
     def start(self) -> dict:
-        """Start the engine and perform initial detection."""
+        """Start the connectivity engine."""
 
-        super().start()
-        self.detect()
-
-        return self.connectivity_status()
+        return self.detect()
 
     def stop(self) -> dict:
-        """Stop the engine."""
+        """Stop the connectivity engine."""
 
-        super().stop()
+        self.report.status = "STOPPED"
 
-        return self.connectivity_status()
+        return self.report.to_dict()
 
     def restart(self) -> dict:
-        """Restart the engine and refresh connectivity state."""
+        """Restart the connectivity engine."""
 
         self.stop()
+
         return self.start()
-
-
-if __name__ == "__main__":
-    engine = ConnectivityEngine()
-
-    print("=" * 60)
-    print("MAIN BASE FOUNDATION")
-    print("CONNECTIVITY ENGINE")
-    print("=" * 60)
-
-    print(engine.start())
-
-    print("=" * 60)
-    print("VISIBLE WI-FI NETWORKS")
-    print("=" * 60)
-
-    print(engine.scan_networks())
-
-    print("=" * 60)
