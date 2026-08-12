@@ -50,6 +50,11 @@ def connectivity_health():
     return connectivity_api.health()
 
 
+@app.get("/connectivity/networks")
+def connectivity_networks():
+    return connectivity_api.networks()
+
+
 @app.post("/connectivity/start")
 def connectivity_start():
     return connectivity_api.start()
