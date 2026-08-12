@@ -59,7 +59,6 @@ class ConnectivityEngine(BaseEngine):
 
         except OSError:
             return False
-            
 
     def detect(self) -> dict:
         """Detect current connectivity status."""
@@ -99,7 +98,7 @@ class ConnectivityEngine(BaseEngine):
         self.last_check = datetime.now(timezone.utc).isoformat()
 
         return self.connectivity_status()
-        
+
     def connectivity_status(self) -> dict:
         """Return the current connectivity report."""
 
@@ -115,7 +114,63 @@ class ConnectivityEngine(BaseEngine):
             "last_check": self.last_check,
         }
 
-    def start(self):
+    def scan_networks(self) -> list:
+        """Scan visible Wi-Fi networks without collecting passwords."""
+
+        networks = []
+
+        try:
+            if platform.system() != "Windows":
+                return networks
+
+            result = subprocess.run(
+                [
+                    "netsh",
+                    "wlan",
+                    "show",
+                    "networks",
+                    "mode=bssid",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=10,
+                check=False,
+            )
+
+            output = result.stdout
+            current_network = None
+
+            for line in output.splitlines():
+                line = line.strip()
+
+                if line.startswith("SSID"):
+                    parts = line.split(":", 1)
+
+                    if len(parts) == 2:
+                        ssid = parts[1].strip()
+
+                        if ssid:
+                            current_network = {
+                                "ssid": ssid,
+                                "security": "UNKNOWN",
+                            }
+                            networks.append(current_network)
+
+                elif (
+                    current_network
+                    and "Authentication" in line
+                ):
+                    parts = line.split(":", 1)
+
+                    if len(parts) == 2:
+                        current_network["security"] = parts[1].strip()
+
+            return networks
+
+        except (OSError, subprocess.SubprocessError):
+            return []
+
+    def start(self) -> dict:
         """Start the engine and perform initial detection."""
 
         super().start()
@@ -123,18 +178,19 @@ class ConnectivityEngine(BaseEngine):
 
         return self.connectivity_status()
 
-    def stop(self):
+    def stop(self) -> dict:
         """Stop the engine."""
 
         super().stop()
 
         return self.connectivity_status()
 
-    def restart(self):
+    def restart(self) -> dict:
         """Restart the engine and refresh connectivity state."""
 
         self.stop()
         return self.start()
+
 
 if __name__ == "__main__":
     engine = ConnectivityEngine()
@@ -147,59 +203,9 @@ if __name__ == "__main__":
     print(engine.start())
 
     print("=" * 60)
+    print("VISIBLE WI-FI NETWORKS")
+    print("=" * 60)
 
-    def scan_networks(self) -> list:
-        """Scan visible Wi-Fi networks without collecting passwords."""
+    print(engine.scan_networks())
 
-        networks = []
-
-        try:
-            if platform.system() == "Windows":
-                result = subprocess.run(
-                    [
-                        "netsh",
-                        "wlan",
-                        "show",
-                        "networks",
-                        "mode=bssid",
-                    ],
-                    capture_output=True,
-                    text=True,
-                    timeout=10,
-                    check=False,
-                )
-
-                output = result.stdout
-
-                current_network = None
-
-                for line in output.splitlines():
-                    line = line.strip()
-
-                    if line.startswith("SSID"):
-                        parts = line.split(":", 1)
-
-                        if len(parts) == 2:
-                            ssid = parts[1].strip()
-
-                            if ssid:
-                                current_network = {
-                                    "ssid": ssid,
-                                    "security": "UNKNOWN",
-                                }
-                                networks.append(current_network)
-
-                    elif (
-                        current_network
-                        and "Authentication" in line
-                    ):
-                        parts = line.split(":", 1)
-
-                        if len(parts) == 2:
-                            current_network["security"] = parts[1].strip()
-
-            return networks
-
-        except (OSError, subprocess.SubprocessError):
-            return []
-
+    print("=" * 60)
