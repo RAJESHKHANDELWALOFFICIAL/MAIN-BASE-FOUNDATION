@@ -42,3 +42,8 @@ class ConnectivityAPI:
             "last_check": status["last_check"],
         }
 
+    def networks(self) -> list:
+        """Return visible Wi-Fi networks without passwords."""
+
+        return self.engine.scan_networks()
+
