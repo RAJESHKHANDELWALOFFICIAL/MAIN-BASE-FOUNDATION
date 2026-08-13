@@ -25,16 +25,51 @@ class VisibleNetwork:
 
 
 @dataclass
-class ConnectivityReport:
-    """Platform-neutral connectivity report."""
+class ServerStatus:
+    """Health status of an explicitly configured server."""
 
-    device: Dict[str, Any] = field(default_factory=dict)
+    name: str
+    host: str
+    port: int
+    protocol: str = "TCP"
+    online: bool = False
+    latency_ms: Optional[float] = None
+    status: str = "UNKNOWN"
+    error: Optional[str] = None
+
+
+@dataclass
+class SatelliteStatus:
+    """Satellite connectivity telemetry status."""
+
+    provider: Optional[str] = None
+    connected: bool = False
+    online: bool = False
+    signal: Optional[str] = None
+    latency_ms: Optional[float] = None
+    status: str = "UNKNOWN"
+    source: str = "UNKNOWN"
+
+
+@dataclass
+class ConnectivityReport:
+    """Platform-neutral unified connectivity report."""
+
+    device: Dict[str, Any] = field(
+        default_factory=dict
+    )
 
     internet: bool = False
     wifi: bool = False
     ethernet: bool = False
+    mobile_data: bool = False
     hotspot: bool = False
     vpn: bool = False
+
+    satellite: bool = False
+
+    online: bool = False
+    offline: bool = True
 
     current_network: Optional[str] = None
 
@@ -44,6 +79,14 @@ class ConnectivityReport:
 
     visible_networks: List[VisibleNetwork] = field(
         default_factory=list
+    )
+
+    servers: List[ServerStatus] = field(
+        default_factory=list
+    )
+
+    satellite_status: SatelliteStatus = field(
+        default_factory=SatelliteStatus
     )
 
     health: str = "UNKNOWN"
@@ -62,12 +105,21 @@ class ConnectivityReport:
 
         return {
             "device": self.device,
+
             "internet": self.internet,
             "wifi": self.wifi,
             "ethernet": self.ethernet,
+            "mobile_data": self.mobile_data,
             "hotspot": self.hotspot,
             "vpn": self.vpn,
+
+            "satellite": self.satellite,
+
+            "online": self.online,
+            "offline": self.offline,
+
             "current_network": self.current_network,
+
             "interfaces": [
                 {
                     "name": interface.name,
@@ -78,6 +130,7 @@ class ConnectivityReport:
                 }
                 for interface in self.interfaces
             ],
+
             "visible_networks": [
                 {
                     "ssid": network.ssid,
@@ -88,6 +141,31 @@ class ConnectivityReport:
                 }
                 for network in self.visible_networks
             ],
+
+            "servers": [
+                {
+                    "name": server.name,
+                    "host": server.host,
+                    "port": server.port,
+                    "protocol": server.protocol,
+                    "online": server.online,
+                    "latency_ms": server.latency_ms,
+                    "status": server.status,
+                    "error": server.error,
+                }
+                for server in self.servers
+            ],
+
+            "satellite_status": {
+                "provider": self.satellite_status.provider,
+                "connected": self.satellite_status.connected,
+                "online": self.satellite_status.online,
+                "signal": self.satellite_status.signal,
+                "latency_ms": self.satellite_status.latency_ms,
+                "status": self.satellite_status.status,
+                "source": self.satellite_status.source,
+            },
+
             "health": self.health,
             "security": self.security,
             "status": self.status,
