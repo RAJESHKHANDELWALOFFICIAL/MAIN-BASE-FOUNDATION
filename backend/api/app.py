@@ -1,3 +1,5 @@
+from typing import Dict
+
 from fastapi import FastAPI
 
 from backend.api.users import router as users_router
@@ -12,7 +14,7 @@ from backend.api.connectivity import ConnectivityAPI
 
 app = FastAPI(
     title="MAIN BASE FOUNDATION API",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 
@@ -42,31 +44,66 @@ app.include_router(roles_router)
 
 @app.get("/connectivity")
 def connectivity_status():
+    """Return unified connectivity status."""
+
     return connectivity_api.status()
 
 
 @app.get("/connectivity/health")
 def connectivity_health():
+    """Return connectivity health."""
+
     return connectivity_api.health()
 
 
 @app.get("/connectivity/networks")
 def connectivity_networks():
+    """Return safely discoverable visible networks."""
+
     return connectivity_api.networks()
+
+
+@app.get("/connectivity/servers")
+def connectivity_servers():
+    """Return configured server health information."""
+
+    return connectivity_api.servers()
+
+
+@app.get("/connectivity/satellite")
+def connectivity_satellite():
+    """Return satellite connectivity status."""
+
+    return connectivity_api.satellite()
+
+
+@app.post("/connectivity/satellite/ingest")
+def connectivity_satellite_ingest(
+    data: Dict[str, object],
+):
+    """Ingest approved satellite telemetry."""
+
+    return connectivity_api.ingest_satellite(data)
 
 
 @app.post("/connectivity/start")
 def connectivity_start():
+    """Start the connectivity engine."""
+
     return connectivity_api.start()
 
 
 @app.post("/connectivity/stop")
 def connectivity_stop():
+    """Stop the connectivity engine."""
+
     return connectivity_api.stop()
 
 
 @app.post("/connectivity/restart")
 def connectivity_restart():
+    """Restart the connectivity engine."""
+
     return connectivity_api.restart()
 
 
@@ -76,8 +113,10 @@ def connectivity_restart():
 
 @app.get("/")
 def home():
+    """Return MAIN BASE FOUNDATION API status."""
+
     return {
         "project": "MAIN BASE FOUNDATION",
         "version": "1.0.0",
-        "status": "RUNNING"
+        "status": "RUNNING",
     }
