@@ -1,3 +1,5 @@
+from typing import Dict
+
 from backend.engines.connectivity.manager import ConnectivityEngine
 
 
@@ -8,7 +10,7 @@ class ConnectivityAPI:
         self.engine = ConnectivityEngine()
 
     def status(self) -> dict:
-        """Return the current connectivity status."""
+        """Return the current unified connectivity status."""
 
         return self.engine.status()
 
@@ -36,3 +38,21 @@ class ConnectivityAPI:
         """Return visible networks without passwords."""
 
         return self.engine.networks()
+
+    def servers(self) -> list:
+        """Return configured server health information."""
+
+        return self.engine.servers()
+
+    def satellite(self) -> dict:
+        """Return current satellite connectivity status."""
+
+        return self.engine.satellite()
+
+    def ingest_satellite(
+        self,
+        data: Dict[str, object],
+    ) -> dict:
+        """Ingest approved satellite telemetry."""
+
+        return self.engine.ingest_satellite(data)
