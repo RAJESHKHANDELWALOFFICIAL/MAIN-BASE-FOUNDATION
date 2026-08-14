@@ -11,6 +11,9 @@ from backend.api.auth import router as auth_router
 from backend.api.roles import router as roles_router
 from backend.api.connectivity import ConnectivityAPI
 from backend.api.integrations import IntegrationsAPI
+from backend.api.integration_connections import (
+    IntegrationConnectionsAPI,
+)
 
 
 app = FastAPI(
@@ -25,6 +28,9 @@ app = FastAPI(
 
 connectivity_api = ConnectivityAPI()
 integrations_api = IntegrationsAPI()
+integration_connections_api = (
+    IntegrationConnectionsAPI()
+)
 
 
 # ==========================
@@ -150,6 +156,57 @@ def integration_authorization(
     """Return authorization requirements."""
 
     return integrations_api.authorization_requirements(
+        provider
+    )
+
+
+# ==========================
+# INTEGRATION CONNECTIONS
+# ==========================
+
+@app.get("/integration-connections")
+def integration_connections_statuses():
+    """Return all provider connection states."""
+
+    return integration_connections_api.statuses()
+
+
+@app.get("/integration-connections/health")
+def integration_connections_health():
+    """Return provider connection health."""
+
+    return integration_connections_api.health()
+
+
+@app.get("/integration-connections/{provider}")
+def integration_connection_status(
+    provider: str,
+):
+    """Return one provider connection state."""
+
+    return integration_connections_api.status(
+        provider
+    )
+
+
+@app.post("/integration-connections/{provider}/connect")
+def integration_connection_connect(
+    provider: str,
+):
+    """Connect an explicitly authorized provider."""
+
+    return integration_connections_api.connect(
+        provider
+    )
+
+
+@app.post("/integration-connections/{provider}/disconnect")
+def integration_connection_disconnect(
+    provider: str,
+):
+    """Disconnect a provider."""
+
+    return integration_connections_api.disconnect(
         provider
     )
 
