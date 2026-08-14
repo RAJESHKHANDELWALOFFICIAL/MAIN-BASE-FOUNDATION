@@ -140,15 +140,6 @@ def integrations_health():
     return integrations_api.health()
 
 
-@app.get("/integrations/{provider}")
-def integration_status(
-    provider: str,
-):
-    """Return status for one integration provider."""
-
-    return integrations_api.status(provider)
-
-
 @app.get("/integrations/{provider}/authorization")
 def integration_authorization(
     provider: str,
@@ -158,6 +149,15 @@ def integration_authorization(
     return integrations_api.authorization_requirements(
         provider
     )
+
+
+@app.get("/integrations/{provider}")
+def integration_status(
+    provider: str,
+):
+    """Return status for one integration provider."""
+
+    return integrations_api.status(provider)
 
 
 # ==========================
