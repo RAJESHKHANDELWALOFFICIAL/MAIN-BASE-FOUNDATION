@@ -10,6 +10,7 @@ from backend.api.identity import router as identity_router
 from backend.api.auth import router as auth_router
 from backend.api.roles import router as roles_router
 from backend.api.connectivity import ConnectivityAPI
+from backend.api.integrations import IntegrationsAPI
 
 
 app = FastAPI(
@@ -19,10 +20,11 @@ app = FastAPI(
 
 
 # ==========================
-# CONNECTIVITY API
+# CORE APIs
 # ==========================
 
 connectivity_api = ConnectivityAPI()
+integrations_api = IntegrationsAPI()
 
 
 # ==========================
@@ -105,6 +107,51 @@ def connectivity_restart():
     """Restart the connectivity engine."""
 
     return connectivity_api.restart()
+
+
+# ==========================
+# GLOBAL INTEGRATIONS
+# ==========================
+
+@app.get("/integrations")
+def integrations_definitions():
+    """Return registered global integrations."""
+
+    return integrations_api.definitions()
+
+
+@app.get("/integrations/status")
+def integrations_status():
+    """Return safe integration readiness status."""
+
+    return integrations_api.statuses()
+
+
+@app.get("/integrations/health")
+def integrations_health():
+    """Return global integrations health."""
+
+    return integrations_api.health()
+
+
+@app.get("/integrations/{provider}")
+def integration_status(
+    provider: str,
+):
+    """Return status for one integration provider."""
+
+    return integrations_api.status(provider)
+
+
+@app.get("/integrations/{provider}/authorization")
+def integration_authorization(
+    provider: str,
+):
+    """Return authorization requirements."""
+
+    return integrations_api.authorization_requirements(
+        provider
+    )
 
 
 # ==========================
