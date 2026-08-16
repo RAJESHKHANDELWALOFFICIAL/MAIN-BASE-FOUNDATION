@@ -4,15 +4,18 @@ Language Engine — Language Registry
 MAIN BASE FOUNDATION
 
 Central registry for:
+
 1. Human languages
 2. Programming languages
 
-The registry stores language metadata and capability declarations.
-Actual translation, speech, detection, transliteration and search
-providers are implemented separately.
+This module stores language definitions and provides
+registration, lookup, listing, alias, extension and
+capability access.
+
+The registry is provider-independent.
 """
 
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, List, Optional
 
 from .models import (
     LanguageDefinition,
@@ -21,410 +24,531 @@ from .models import (
 
 
 # =========================================================
-# 🌍 HUMAN LANGUAGE REGISTRY
+# 🌍 LANGUAGE REGISTRY
 # =========================================================
 
-class HumanLanguageRegistry:
+class LanguageRegistry:
     """
-    Registry for supported human languages.
+    Central registry for human and programming languages.
     """
 
-    def __init__(
-        self,
-        languages: Optional[
-            Iterable[LanguageDefinition]
-        ] = None,
-    ) -> None:
+    def __init__(self) -> None:
 
         self._languages: Dict[
-            str, LanguageDefinition
+            str,
+            LanguageDefinition,
         ] = {}
 
-        if languages:
-            for language in languages:
-                self.register(language)
+        self._programming_languages: Dict[
+            str,
+            ProgrammingLanguageDefinition,
+        ] = {}
 
-    # -----------------------------------------------------
-    # REGISTER
-    # -----------------------------------------------------
+        self._programming_aliases: Dict[
+            str,
+            str,
+        ] = {}
 
-    def register(
+        self._programming_extensions: Dict[
+            str,
+            str,
+        ] = {}
+
+    # =====================================================
+    # 🌍 HUMAN LANGUAGE REGISTRATION
+    # =====================================================
+
+    def register_language(
         self,
         language: LanguageDefinition,
     ) -> None:
-        """Register or replace a human language."""
+        """
+        Register a human language.
+        """
+
+        if not isinstance(
+            language,
+            LanguageDefinition,
+        ):
+            raise TypeError(
+                "Language must be LanguageDefinition."
+            )
 
         code = language.code.strip().lower()
+
+        if code in self._languages:
+            raise ValueError(
+                f"Language already registered: {code}"
+            )
+
+        self._languages[code] = language
+
+    # =====================================================
+    # 🌍 HUMAN LANGUAGE LOOKUP
+    # =====================================================
+
+    def get_language(
+        self,
+        language_code: str,
+    ) -> Optional[LanguageDefinition]:
+        """
+        Retrieve a human language by language code.
+        """
+
+        code = self._normalize_code(
+            language_code
+        )
+
+        return self._languages.get(code)
+
+    # =====================================================
+    # 🌍 HUMAN LANGUAGE REQUIRE
+    # =====================================================
+
+    def require_language(
+        self,
+        language_code: str,
+    ) -> LanguageDefinition:
+        """
+        Retrieve a language or raise an error.
+        """
+
+        language = self.get_language(
+            language_code
+        )
+
+        if language is None:
+            raise KeyError(
+                f"Language not registered: "
+                f"{language_code}"
+            )
+
+        return language
+
+    # =====================================================
+    # 🌍 HUMAN LANGUAGE EXISTS
+    # =====================================================
+
+    def has_language(
+        self,
+        language_code: str,
+    ) -> bool:
+        """
+        Check whether a human language is registered.
+        """
+
+        return (
+            self.get_language(language_code)
+            is not None
+        )
+
+    # =====================================================
+    # 🌍 HUMAN LANGUAGE LIST
+    # =====================================================
+
+    def list_languages(
+        self,
+    ) -> List[LanguageDefinition]:
+        """
+        Return all registered human languages.
+        """
+
+        return list(
+            self._languages.values()
+        )
+
+    # =====================================================
+    # 🌍 HUMAN LANGUAGE COUNT
+    # =====================================================
+
+    @property
+    def language_count(self) -> int:
+        """
+        Return number of registered human languages.
+        """
+
+        return len(self._languages)
+
+    # =====================================================
+    # 💻 PROGRAMMING LANGUAGE REGISTRATION
+    # =====================================================
+
+    def register_programming_language(
+        self,
+        language: ProgrammingLanguageDefinition,
+    ) -> None:
+        """
+        Register a programming language.
+        """
+
+        if not isinstance(
+            language,
+            ProgrammingLanguageDefinition,
+        ):
+            raise TypeError(
+                "Programming language must be "
+                "ProgrammingLanguageDefinition."
+            )
+
+        key = language.key.strip().lower()
+
+        if key in self._programming_languages:
+            raise ValueError(
+                "Programming language already "
+                f"registered: {key}"
+            )
+
+        self._programming_languages[
+            key
+        ] = language
+
+        for alias in language.aliases:
+
+            normalized_alias = (
+                alias.strip().lower()
+            )
+
+            if normalized_alias:
+                self._programming_aliases[
+                    normalized_alias
+                ] = key
+
+        for extension in language.extensions:
+
+            normalized_extension = (
+                extension.strip().lower()
+            )
+
+            if not normalized_extension:
+                continue
+
+            if not normalized_extension.startswith(
+                "."
+            ):
+                normalized_extension = (
+                    "." + normalized_extension
+                )
+
+            self._programming_extensions[
+                normalized_extension
+            ] = key
+
+    # =====================================================
+    # 💻 PROGRAMMING LANGUAGE LOOKUP
+    # =====================================================
+
+    def get_programming_language(
+        self,
+        identifier: str,
+    ) -> Optional[
+        ProgrammingLanguageDefinition
+    ]:
+        """
+        Retrieve a programming language by:
+
+        - key
+        - alias
+        - file extension
+        """
+
+        normalized = (
+            identifier.strip().lower()
+        )
+
+        if not normalized:
+            return None
+
+        language = (
+            self._programming_languages.get(
+                normalized
+            )
+        )
+
+        if language is not None:
+            return language
+
+        key = self._programming_aliases.get(
+            normalized
+        )
+
+        if key is not None:
+            return self._programming_languages.get(
+                key
+            )
+
+        extension = normalized
+
+        if not extension.startswith("."):
+            extension = "." + extension
+
+        key = self._programming_extensions.get(
+            extension
+        )
+
+        if key is not None:
+            return self._programming_languages.get(
+                key
+            )
+
+        return None
+
+    # =====================================================
+    # 💻 PROGRAMMING LANGUAGE REQUIRE
+    # =====================================================
+
+    def require_programming_language(
+        self,
+        identifier: str,
+    ) -> ProgrammingLanguageDefinition:
+        """
+        Retrieve a programming language or raise an error.
+        """
+
+        language = (
+            self.get_programming_language(
+                identifier
+            )
+        )
+
+        if language is None:
+            raise KeyError(
+                "Programming language not registered: "
+                f"{identifier}"
+            )
+
+        return language
+
+    # =====================================================
+    # 💻 PROGRAMMING LANGUAGE EXISTS
+    # =====================================================
+
+    def has_programming_language(
+        self,
+        identifier: str,
+    ) -> bool:
+        """
+        Check whether a programming language exists.
+        """
+
+        return (
+            self.get_programming_language(
+                identifier
+            )
+            is not None
+        )
+
+    # =====================================================
+    # 💻 PROGRAMMING LANGUAGE LIST
+    # =====================================================
+
+    def list_programming_languages(
+        self,
+    ) -> List[
+        ProgrammingLanguageDefinition
+    ]:
+        """
+        Return all registered programming languages.
+        """
+
+        return list(
+            self._programming_languages.values()
+        )
+
+    # =====================================================
+    # 💻 PROGRAMMING LANGUAGE COUNT
+    # =====================================================
+
+    @property
+    def programming_language_count(
+        self,
+    ) -> int:
+        """
+        Return number of registered programming
+        languages.
+        """
+
+        return len(
+            self._programming_languages
+        )
+
+    # =====================================================
+    # 🔎 LANGUAGE CAPABILITY
+    # =====================================================
+
+    def get_language_capabilities(
+        self,
+        language_code: str,
+    ) -> Dict[str, bool]:
+        """
+        Return supported capabilities of a human language.
+        """
+
+        language = self.require_language(
+            language_code
+        )
+
+        return {
+            "speech_to_text":
+                language.speech_to_text,
+
+            "text_to_speech":
+                language.text_to_speech,
+
+            "translation":
+                language.translation,
+
+            "transliteration":
+                language.transliteration,
+
+            "search":
+                language.search,
+        }
+
+    # =====================================================
+    # 📝 SCRIPT INFORMATION
+    # =====================================================
+
+    def get_language_scripts(
+        self,
+        language_code: str,
+    ) -> List[str]:
+        """
+        Return scripts supported by a human language.
+        """
+
+        language = self.require_language(
+            language_code
+        )
+
+        return list(
+            language.scripts
+        )
+
+    # =====================================================
+    # 🌐 LOCALE INFORMATION
+    # =====================================================
+
+    def get_language_locale(
+        self,
+        language_code: str,
+    ) -> Optional[str]:
+        """
+        Return the locale associated with a language.
+        """
+
+        language = self.require_language(
+            language_code
+        )
+
+        return language.locale
+
+    # =====================================================
+    # ↔️ TEXT DIRECTION
+    # =====================================================
+
+    def get_language_direction(
+        self,
+        language_code: str,
+    ) -> str:
+        """
+        Return text direction:
+
+        ltr = left-to-right
+        rtl = right-to-left
+        """
+
+        language = self.require_language(
+            language_code
+        )
+
+        return language.direction
+
+    # =====================================================
+    # 🧹 REGISTRY CLEAR
+    # =====================================================
+
+    def clear(self) -> None:
+        """
+        Clear all registered languages.
+        """
+
+        self._languages.clear()
+
+        self._programming_languages.clear()
+
+        self._programming_aliases.clear()
+
+        self._programming_extensions.clear()
+
+    # =====================================================
+    # 📊 REGISTRY STATUS
+    # =====================================================
+
+    def status(self) -> Dict[str, int]:
+        """
+        Return registry statistics.
+        """
+
+        return {
+            "human_languages":
+                self.language_count,
+
+            "programming_languages":
+                self.programming_language_count,
+
+            "programming_aliases":
+                len(self._programming_aliases),
+
+            "programming_extensions":
+                len(self._programming_extensions),
+        }
+
+    # =====================================================
+    # 🔧 INTERNAL NORMALIZATION
+    # =====================================================
+
+    @staticmethod
+    def _normalize_code(
+        language_code: str,
+    ) -> str:
+        """
+        Normalize a human-language code.
+        """
+
+        if not isinstance(
+            language_code,
+            str,
+        ):
+            raise TypeError(
+                "Language code must be a string."
+            )
+
+        code = (
+            language_code.strip().lower()
+        )
 
         if not code:
             raise ValueError(
                 "Language code cannot be empty."
             )
 
-        self._languages[code] = language
-
-    # -----------------------------------------------------
-    # GET
-    # -----------------------------------------------------
-
-    def get(
-        self,
-        code: str,
-    ) -> Optional[LanguageDefinition]:
-        """Return a language by code."""
-
-        return self._languages.get(
-            code.strip().lower()
-        )
-
-    # -----------------------------------------------------
-    # EXISTS
-    # -----------------------------------------------------
-
-    def exists(
-        self,
-        code: str,
-    ) -> bool:
-        """Check whether a language is registered."""
-
-        return (
-            code.strip().lower()
-            in self._languages
-        )
-
-    # -----------------------------------------------------
-    # REMOVE
-    # -----------------------------------------------------
-
-    def remove(
-        self,
-        code: str,
-    ) -> bool:
-        """Remove a registered language."""
-
-        normalized = code.strip().lower()
-
-        if normalized not in self._languages:
-            return False
-
-        del self._languages[normalized]
-
-        return True
-
-    # -----------------------------------------------------
-    # ALL
-    # -----------------------------------------------------
-
-    def all(self) -> List[LanguageDefinition]:
-        """Return all registered human languages."""
-
-        return list(self._languages.values())
-
-    # -----------------------------------------------------
-    # COUNT
-    # -----------------------------------------------------
-
-    def count(self) -> int:
-        """Return number of registered human languages."""
-
-        return len(self._languages)
-
-    # -----------------------------------------------------
-    # SEARCH
-    # -----------------------------------------------------
-
-    def search(
-        self,
-        query: str,
-    ) -> List[LanguageDefinition]:
-        """
-        Search languages by code, name or native name.
-        """
-
-        term = query.strip().lower()
-
-        if not term:
-            return self.all()
-
-        return [
-            language
-            for language in self._languages.values()
-            if (
-                term in language.code.lower()
-                or term in language.name.lower()
-                or term in language.native_name.lower()
-            )
-        ]
+        return code
 
 
 # =========================================================
-# 💻 PROGRAMMING LANGUAGE REGISTRY
+# 🌍 DEFAULT REGISTRY
 # =========================================================
 
-class ProgrammingLanguageRegistry:
-    """
-    Registry for programming languages.
-    """
-
-    def __init__(
-        self,
-        languages: Optional[
-            Iterable[ProgrammingLanguageDefinition]
-        ] = None,
-    ) -> None:
-
-        self._languages: Dict[
-            str, ProgrammingLanguageDefinition
-        ] = {}
-
-        if languages:
-            for language in languages:
-                self.register(language)
-
-    # -----------------------------------------------------
-    # REGISTER
-    # -----------------------------------------------------
-
-    def register(
-        self,
-        language: ProgrammingLanguageDefinition,
-    ) -> None:
-        """Register or replace a programming language."""
-
-        key = language.key.strip().lower()
-
-        if not key:
-            raise ValueError(
-                "Programming language key cannot be empty."
-            )
-
-        self._languages[key] = language
-
-    # -----------------------------------------------------
-    # GET
-    # -----------------------------------------------------
-
-    def get(
-        self,
-        key: str,
-    ) -> Optional[ProgrammingLanguageDefinition]:
-        """Return a programming language by key."""
-
-        return self._languages.get(
-            key.strip().lower()
-        )
-
-    # -----------------------------------------------------
-    # EXISTS
-    # -----------------------------------------------------
-
-    def exists(
-        self,
-        key: str,
-    ) -> bool:
-        """Check whether a programming language exists."""
-
-        return (
-            key.strip().lower()
-            in self._languages
-        )
-
-    # -----------------------------------------------------
-    # ALL
-    # -----------------------------------------------------
-
-    def all(
-        self,
-    ) -> List[ProgrammingLanguageDefinition]:
-        """Return all registered programming languages."""
-
-        return list(self._languages.values())
-
-    # -----------------------------------------------------
-    # COUNT
-    # -----------------------------------------------------
-
-    def count(self) -> int:
-        """Return number of registered programming languages."""
-
-        return len(self._languages)
-
-    # -----------------------------------------------------
-    # FIND BY EXTENSION
-    # -----------------------------------------------------
-
-    def find_by_extension(
-        self,
-        extension: str,
-    ) -> Optional[ProgrammingLanguageDefinition]:
-        """
-        Find a programming language by file extension.
-
-        Examples:
-            .py
-            .js
-            .ts
-        """
-
-        normalized = extension.strip().lower()
-
-        if not normalized:
-            return None
-
-        if not normalized.startswith("."):
-            normalized = f".{normalized}"
-
-        for language in self._languages.values():
-
-            extensions = {
-                item.strip().lower()
-                for item in language.extensions
-            }
-
-            if normalized in extensions:
-                return language
-
-        return None
-
-    # -----------------------------------------------------
-    # SEARCH
-    # -----------------------------------------------------
-
-    def search(
-        self,
-        query: str,
-    ) -> List[ProgrammingLanguageDefinition]:
-        """Search programming languages."""
-
-        term = query.strip().lower()
-
-        if not term:
-            return self.all()
-
-        results: List[
-            ProgrammingLanguageDefinition
-        ] = []
-
-        for language in self._languages.values():
-
-            searchable_values = [
-                language.key,
-                language.name,
-                *language.aliases,
-            ]
-
-            if any(
-                term in value.lower()
-                for value in searchable_values
-            ):
-                results.append(language)
-
-        return results
+DEFAULT_LANGUAGE_REGISTRY = (
+    LanguageRegistry()
+)
 
 
 # =========================================================
-# 🌐 GLOBAL LANGUAGE REGISTRY
+# 📦 PUBLIC API
 # =========================================================
-
-class GlobalLanguageRegistry:
-    """
-    Unified registry containing both human-language and
-    programming-language registries.
-    """
-
-    def __init__(self) -> None:
-
-        self.human = HumanLanguageRegistry()
-
-        self.programming = ProgrammingLanguageRegistry()
-
-    # -----------------------------------------------------
-    # HUMAN LANGUAGE
-    # -----------------------------------------------------
-
-    def register_human_language(
-        self,
-        language: LanguageDefinition,
-    ) -> None:
-        """Register a human language."""
-
-        self.human.register(language)
-
-    # -----------------------------------------------------
-    # PROGRAMMING LANGUAGE
-    # -----------------------------------------------------
-
-    def register_programming_language(
-        self,
-        language: ProgrammingLanguageDefinition,
-    ) -> None:
-        """Register a programming language."""
-
-        self.programming.register(language)
-
-    # -----------------------------------------------------
-    # HUMAN LANGUAGE LOOKUP
-    # -----------------------------------------------------
-
-    def get_human_language(
-        self,
-        code: str,
-    ) -> Optional[LanguageDefinition]:
-        """Get a human language."""
-
-        return self.human.get(code)
-
-    # -----------------------------------------------------
-    # PROGRAMMING LANGUAGE LOOKUP
-    # -----------------------------------------------------
-
-    def get_programming_language(
-        self,
-        key: str,
-    ) -> Optional[ProgrammingLanguageDefinition]:
-        """Get a programming language."""
-
-        return self.programming.get(key)
-
-    # -----------------------------------------------------
-    # PROGRAMMING EXTENSION LOOKUP
-    # -----------------------------------------------------
-
-    def find_programming_language_by_extension(
-        self,
-        extension: str,
-    ) -> Optional[ProgrammingLanguageDefinition]:
-        """Find programming language by file extension."""
-
-        return self.programming.find_by_extension(
-            extension
-        )
-
-    # -----------------------------------------------------
-    # COUNTS
-    # -----------------------------------------------------
-
-    def human_language_count(self) -> int:
-        """Return registered human-language count."""
-
-        return self.human.count()
-
-    def programming_language_count(self) -> int:
-        """Return registered programming-language count."""
-
-        return self.programming.count()
-
-
-# =========================================================
-# 🌍 DEFAULT GLOBAL REGISTRY
-# =========================================================
-
-GLOBAL_LANGUAGE_REGISTRY = GlobalLanguageRegistry()
-
 
 __all__ = [
-    "HumanLanguageRegistry",
-    "ProgrammingLanguageRegistry",
-    "GlobalLanguageRegistry",
-    "GLOBAL_LANGUAGE_REGISTRY",
+    "LanguageRegistry",
+    "DEFAULT_LANGUAGE_REGISTRY",
 ]
