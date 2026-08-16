@@ -1,464 +1,351 @@
 """
-Language Engine — Language Detection
+Language Engine — Language Detection Service
 
 MAIN BASE FOUNDATION
 
-Provides framework-independent language and script detection.
+Provider-independent language detection foundation.
 
-This module does not depend on a specific external AI or
-translation provider. Provider-specific detection can be
-connected later through the Language Engine.
+This module defines:
+
+- Detection provider contract
+- Text validation
+- Language detection
+- Candidate languages
+- Confidence
+- Script information
+- Service status
+
+Actual language-detection implementations are connected
+through the DetectionProvider contract.
 """
 
-from collections import Counter
-from typing import Dict, List, Optional, Tuple
+from abc import ABC, abstractmethod
+from typing import Any, Dict, Optional
 
-from .models import LanguageDetectionResult
-from .registry import GlobalLanguageRegistry
-
-
-# =========================================================
-# 🌍 SCRIPT DETECTION
-# =========================================================
-
-SCRIPT_RANGES: Dict[str, Tuple[int, int]] = {
-    "latin": (0x0041, 0x024F),
-    "devanagari": (0x0900, 0x097F),
-    "bengali": (0x0980, 0x09FF),
-    "gurmukhi": (0x0A00, 0x0A7F),
-    "gujarati": (0x0A80, 0x0AFF),
-    "oriya": (0x0B00, 0x0B7F),
-    "tamil": (0x0B80, 0x0BFF),
-    "telugu": (0x0C00, 0x0C7F),
-    "kannada": (0x0C80, 0x0CFF),
-    "malayalam": (0x0D00, 0x0D7F),
-    "thai": (0x0E00, 0x0E7F),
-    "georgian": (0x10A0, 0x10FF),
-    "hebrew": (0x0590, 0x05FF),
-    "arabic": (0x0600, 0x06FF),
-    "armenian": (0x0530, 0x058F),
-    "cyrillic": (0x0400, 0x04FF),
-    "greek": (0x0370, 0x03FF),
-    "hiragana": (0x3040, 0x309F),
-    "katakana": (0x30A0, 0x30FF),
-    "hangul": (0xAC00, 0xD7AF),
-}
+from .models import (
+    LanguageDetectionResult,
+)
 
 
 # =========================================================
-# 🔤 LANGUAGE SCRIPT MAP
+# 🔎 DETECTION PROVIDER CONTRACT
 # =========================================================
 
-SCRIPT_LANGUAGE_MAP: Dict[str, List[str]] = {
-    "devanagari": [
-        "hi",
-        "mr",
-        "ne",
-        "sa",
-    ],
-    "bengali": [
-        "bn",
-    ],
-    "gurmukhi": [
-        "pa",
-    ],
-    "gujarati": [
-        "gu",
-    ],
-    "oriya": [
-        "or",
-    ],
-    "tamil": [
-        "ta",
-    ],
-    "telugu": [
-        "te",
-    ],
-    "kannada": [
-        "kn",
-    ],
-    "malayalam": [
-        "ml",
-    ],
-    "thai": [
-        "th",
-    ],
-    "hebrew": [
-        "he",
-    ],
-    "arabic": [
-        "ar",
-        "fa",
-        "ur",
-    ],
-    "cyrillic": [
-        "ru",
-        "uk",
-        "bg",
-        "sr",
-    ],
-    "greek": [
-        "el",
-    ],
-    "hiragana": [
-        "ja",
-    ],
-    "katakana": [
-        "ja",
-    ],
-    "hangul": [
-        "ko",
-    ],
-}
-
-
-# =========================================================
-# 🧠 COMMON LANGUAGE MARKERS
-# =========================================================
-
-LANGUAGE_MARKERS: Dict[str, Tuple[str, ...]] = {
-    "en": (
-        "the",
-        "and",
-        "is",
-        "are",
-        "you",
-        "this",
-        "that",
-        "with",
-    ),
-    "hi": (
-        "है",
-        "और",
-        "का",
-        "की",
-        "के",
-        "में",
-        "से",
-        "यह",
-    ),
-    "es": (
-        "el",
-        "la",
-        "los",
-        "las",
-        "que",
-        "una",
-        "con",
-    ),
-    "fr": (
-        "le",
-        "la",
-        "les",
-        "des",
-        "une",
-        "avec",
-        "que",
-    ),
-    "de": (
-        "der",
-        "die",
-        "das",
-        "und",
-        "ist",
-        "ein",
-        "mit",
-    ),
-    "it": (
-        "il",
-        "la",
-        "gli",
-        "le",
-        "che",
-        "una",
-        "con",
-    ),
-    "pt": (
-        "o",
-        "a",
-        "os",
-        "as",
-        "que",
-        "uma",
-        "com",
-    ),
-    "nl": (
-        "de",
-        "het",
-        "een",
-        "en",
-        "van",
-        "met",
-    ),
-    "tr": (
-        "bir",
-        "ve",
-        "bu",
-        "ile",
-        "için",
-    ),
-}
-
-
-# =========================================================
-# 🔎 SCRIPT DETECTOR
-# =========================================================
-
-class ScriptDetector:
+class DetectionProvider(ABC):
     """
-    Detects the dominant writing script in text.
+    Abstract contract for language-detection providers.
     """
 
-    def detect(self, text: str) -> Optional[str]:
+    @abstractmethod
+    def detect(
+        self,
+        text: str,
+    ) -> LanguageDetectionResult:
         """
-        Return the dominant detected script.
-
-        Returns None when no supported script can be
-        identified.
+        Detect the language of supplied text.
         """
-
-        if not text or not text.strip():
-            return None
-
-        counts: Counter[str] = Counter()
-
-        for character in text:
-
-            codepoint = ord(character)
-
-            for script, (
-                start,
-                end,
-            ) in SCRIPT_RANGES.items():
-
-                if start <= codepoint <= end:
-
-                    counts[script] += 1
-
-                    break
-
-        if not counts:
-            return None
-
-        return counts.most_common(1)[0][0]
+        raise NotImplementedError
 
 
 # =========================================================
-# 🌍 LANGUAGE DETECTOR
+# 🧱 DETECTION SERVICE
 # =========================================================
 
-class LanguageDetector:
+class LanguageDetectionService:
     """
-    Detects a likely language from text.
+    Central language-detection service.
 
-    Detection is intentionally conservative. Without an
-    external language-detection model/provider, the engine
-    only returns a result when enough evidence is available.
+    The service is provider-independent.
+
+    A real detection provider can be connected later
+    without changing the Language Engine architecture.
     """
 
     def __init__(
         self,
-        registry: Optional[GlobalLanguageRegistry] = None,
+        provider: Optional[
+            DetectionProvider
+        ] = None,
     ) -> None:
 
-        self.registry = registry
+        self.provider = provider
 
-        self.script_detector = ScriptDetector()
+    # =====================================================
+    # ⚙️ PROVIDER CONFIGURATION
+    # =====================================================
 
-    # -----------------------------------------------------
-    # DETECT
-    # -----------------------------------------------------
+    def set_provider(
+        self,
+        provider: DetectionProvider,
+    ) -> None:
+        """
+        Configure the detection provider.
+        """
+
+        if not hasattr(
+            provider,
+            "detect",
+        ):
+            raise TypeError(
+                "Detection provider must implement "
+                "detect()."
+            )
+
+        self.provider = provider
+
+    # =====================================================
+    # 🔌 PROVIDER STATUS
+    # =====================================================
+
+    @property
+    def is_configured(self) -> bool:
+        """
+        Return whether a detection provider is configured.
+        """
+
+        return self.provider is not None
+
+    # =====================================================
+    # 📝 TEXT VALIDATION
+    # =====================================================
+
+    @staticmethod
+    def validate_text(
+        text: str,
+    ) -> None:
+        """
+        Validate text before detection.
+        """
+
+        if not isinstance(
+            text,
+            str,
+        ):
+            raise TypeError(
+                "Detection text must be a string."
+            )
+
+        if not text.strip():
+            raise ValueError(
+                "Detection text cannot be empty."
+            )
+
+    # =====================================================
+    # 🔎 DETECT
+    # =====================================================
 
     def detect(
         self,
         text: str,
     ) -> LanguageDetectionResult:
         """
-        Detect the most likely language.
-
-        Returns a standardized LanguageDetectionResult.
+        Detect the language of supplied text.
         """
 
-        if not isinstance(text, str):
-            raise TypeError(
-                "Text must be a string."
+        self.validate_text(text)
+
+        if self.provider is None:
+            raise RuntimeError(
+                "No language detection provider "
+                "is configured."
             )
 
-        cleaned = text.strip()
-
-        if not cleaned:
-            return LanguageDetectionResult(
-                language_code=None,
-                confidence=0.0,
-                script=None,
-                candidates=[],
-            )
-
-        script = self.script_detector.detect(
-            cleaned
+        result = self.provider.detect(
+            text
         )
 
-        candidates: List[str] = []
-
-        # -------------------------------------------------
-        # SCRIPT-BASED CANDIDATES
-        # -------------------------------------------------
-
-        if script:
-
-            candidates = list(
-                SCRIPT_LANGUAGE_MAP.get(
-                    script,
-                    [],
-                )
+        if not isinstance(
+            result,
+            LanguageDetectionResult,
+        ):
+            raise TypeError(
+                "Detection provider must return "
+                "LanguageDetectionResult."
             )
 
-        # -------------------------------------------------
-        # MARKER-BASED DETECTION
-        # -------------------------------------------------
+        return result
 
-        marker_scores: Dict[str, int] = {}
+    # =====================================================
+    # 🌍 DETECT LANGUAGE CODE
+    # =====================================================
 
-        words = {
-            word.strip(
-                ".,!?;:\"'()[]{}"
-            ).lower()
-            for word in cleaned.split()
+    def detect_language_code(
+        self,
+        text: str,
+    ) -> Optional[str]:
+        """
+        Return only the detected language code.
+        """
+
+        result = self.detect(text)
+
+        return result.language_code
+
+    # =====================================================
+    # 📊 DETECT CONFIDENCE
+    # =====================================================
+
+    def detect_confidence(
+        self,
+        text: str,
+    ) -> float:
+        """
+        Return detection confidence.
+        """
+
+        result = self.detect(text)
+
+        return result.confidence
+
+    # =====================================================
+    # 📝 DETECT SCRIPT
+    # =====================================================
+
+    def detect_script(
+        self,
+        text: str,
+    ) -> Optional[str]:
+        """
+        Return the detected writing script.
+        """
+
+        result = self.detect(text)
+
+        return result.script
+
+    # =====================================================
+    # 🔎 DETECT CANDIDATES
+    # =====================================================
+
+    def detect_candidates(
+        self,
+        text: str,
+    ) -> list[str]:
+        """
+        Return candidate language codes.
+        """
+
+        result = self.detect(text)
+
+        return list(
+            result.candidates
+        )
+
+    # =====================================================
+    # 🎯 CONFIDENCE CHECK
+    # =====================================================
+
+    def is_confident(
+        self,
+        text: str,
+        threshold: float = 0.80,
+    ) -> bool:
+        """
+        Determine whether detection confidence meets
+        the supplied threshold.
+        """
+
+        if not 0.0 <= threshold <= 1.0:
+            raise ValueError(
+                "Confidence threshold must be between "
+                "0.0 and 1.0."
+            )
+
+        confidence = (
+            self.detect_confidence(text)
+        )
+
+        return confidence >= threshold
+
+    # =====================================================
+    # 🌐 LANGUAGE NORMALIZATION
+    # =====================================================
+
+    @staticmethod
+    def normalize_language_code(
+        language_code: str,
+    ) -> str:
+        """
+        Normalize a language code.
+
+        Examples:
+
+            EN → en
+            HI → hi
+            en-US → en-us
+        """
+
+        if not isinstance(
+            language_code,
+            str,
+        ):
+            raise TypeError(
+                "Language code must be a string."
+            )
+
+        normalized = (
+            language_code.strip().lower()
+        )
+
+        if not normalized:
+            raise ValueError(
+                "Language code cannot be empty."
+            )
+
+        return normalized
+
+    # =====================================================
+    # 📊 SERVICE STATUS
+    # =====================================================
+
+    def status(self) -> Dict[str, Any]:
+        """
+        Return language detection service status.
+        """
+
+        return {
+            "service": "language_detection",
+            "configured": self.is_configured,
+            "provider": (
+                self.provider.__class__.__name__
+                if self.provider is not None
+                else None
+            ),
         }
 
-        for language_code, markers in (
-            LANGUAGE_MARKERS.items()
-        ):
 
-            score = sum(
-                1
-                for marker in markers
-                if marker.lower() in words
-            )
+# =========================================================
+# 🧪 NULL / PLACEHOLDER PROVIDER
+# =========================================================
 
-            if score:
-                marker_scores[
-                    language_code
-                ] = score
+class NullDetectionProvider(
+    DetectionProvider
+):
+    """
+    Explicit provider placeholder.
 
-        if marker_scores:
+    It never pretends to detect a language.
+    """
 
-            sorted_markers = sorted(
-                marker_scores.items(),
-                key=lambda item: item[1],
-                reverse=True,
-            )
+    def detect(
+        self,
+        text: str,
+    ) -> LanguageDetectionResult:
 
-            marker_candidates = [
-                code
-                for code, _ in sorted_markers
-            ]
-
-            if not candidates:
-
-                candidates = marker_candidates
-
-            else:
-
-                candidates = list(
-                    dict.fromkeys(
-                        candidates
-                        + marker_candidates
-                    )
-                )
-
-        # -------------------------------------------------
-        # DETERMINE RESULT
-        # -------------------------------------------------
-
-        if not candidates:
-
-            return LanguageDetectionResult(
-                language_code=None,
-                confidence=0.0,
-                script=script,
-                candidates=[],
-            )
-
-        selected = candidates[0]
-
-        # Script alone is weak evidence when several
-        # languages share the same script.
-
-        if marker_scores:
-
-            score = marker_scores.get(
-                selected,
-                0,
-            )
-
-            confidence = min(
-                0.50 + (score * 0.10),
-                0.95,
-            )
-
-        else:
-
-            confidence = (
-                0.60
-                if len(candidates) == 1
-                else 0.40
-            )
-
-        # -------------------------------------------------
-        # REGISTRY VALIDATION
-        # -------------------------------------------------
-
-        if self.registry:
-
-            if not self.registry.human.exists(
-                selected
-            ):
-
-                registered_candidates = [
-                    code
-                    for code in candidates
-                    if self.registry.human.exists(
-                        code
-                    )
-                ]
-
-                if registered_candidates:
-
-                    selected = (
-                        registered_candidates[0]
-                    )
-
-                else:
-
-                    selected = None
-                    confidence = 0.0
-
-        return LanguageDetectionResult(
-            language_code=selected,
-            confidence=confidence,
-            script=script,
-            candidates=candidates,
+        raise RuntimeError(
+            "NullDetectionProvider cannot perform "
+            "language detection. Configure a real "
+            "detection provider."
         )
 
 
 # =========================================================
-# ⚡ CONVENIENCE FUNCTION
+# 🌍 DEFAULT DETECTION SERVICE
 # =========================================================
 
-def detect_language(
-    text: str,
-    registry: Optional[GlobalLanguageRegistry] = None,
-) -> LanguageDetectionResult:
-    """
-    Convenience function for language detection.
-    """
-
-    detector = LanguageDetector(
-        registry=registry
-    )
-
-    return detector.detect(text)
+DEFAULT_DETECTION_SERVICE = (
+    LanguageDetectionService()
+)
 
 
 # =========================================================
@@ -466,10 +353,8 @@ def detect_language(
 # =========================================================
 
 __all__ = [
-    "SCRIPT_RANGES",
-    "SCRIPT_LANGUAGE_MAP",
-    "LANGUAGE_MARKERS",
-    "ScriptDetector",
-    "LanguageDetector",
-    "detect_language",
+    "DetectionProvider",
+    "LanguageDetectionService",
+    "NullDetectionProvider",
+    "DEFAULT_DETECTION_SERVICE",
 ]
