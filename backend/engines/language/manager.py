@@ -6,11 +6,14 @@ MAIN BASE FOUNDATION
 Central orchestration layer for language operations.
 
 The manager coordinates:
+
 - Language detection
 - Translation
 - Transliteration
 - Speech processing
 - Multilingual search
+- Human-language registry
+- Programming-language registry
 
 Provider-specific implementations remain isolated from
 this manager.
@@ -18,7 +21,10 @@ this manager.
 
 from typing import Any, Dict, Optional
 
-from .detection import LanguageDetector
+from .detection import (
+    LanguageDetectionService,
+)
+
 from .models import (
     LanguageDetectionResult,
     LanguageRequest,
@@ -27,7 +33,10 @@ from .models import (
     TranslationResult,
     TransliterationResult,
 )
-from .registry import GlobalLanguageRegistry
+
+from .registry import (
+    LanguageRegistry,
+)
 
 
 # =========================================================
@@ -38,15 +47,18 @@ class LanguageEngineManager:
     """
     Central manager for the Global Language Engine.
 
-    This class provides one consistent interface for
-    language-related operations while keeping individual
-    providers and services independent.
+    Provides one consistent interface for language-related
+    operations while keeping providers and services
+    independent.
     """
 
     def __init__(
         self,
         registry: Optional[
-            GlobalLanguageRegistry
+            LanguageRegistry
+        ] = None,
+        detection_service: Optional[
+            LanguageDetectionService
         ] = None,
         translator: Optional[Any] = None,
         transliterator: Optional[Any] = None,
@@ -57,11 +69,13 @@ class LanguageEngineManager:
         self.registry = (
             registry
             if registry is not None
-            else GlobalLanguageRegistry()
+            else LanguageRegistry()
         )
 
-        self.detector = LanguageDetector(
-            registry=self.registry
+        self.detection_service = (
+            detection_service
+            if detection_service is not None
+            else LanguageDetectionService()
         )
 
         self.translator = translator
@@ -78,10 +92,60 @@ class LanguageEngineManager:
         text: str,
     ) -> LanguageDetectionResult:
         """
-        Detect the language and writing script of text.
+        Detect language, confidence and script.
         """
 
-        return self.detector.detect(text)
+        return self.detection_service.detect(
+            text
+        )
+
+    # =====================================================
+    # 🔎 DETECT LANGUAGE CODE
+    # =====================================================
+
+    def detect_language(
+        self,
+        text: str,
+    ) -> Optional[str]:
+        """
+        Return detected language code.
+        """
+
+        result = self.detect(text)
+
+        return result.language_code
+
+    # =====================================================
+    # 📊 DETECT CONFIDENCE
+    # =====================================================
+
+    def detect_confidence(
+        self,
+        text: str,
+    ) -> float:
+        """
+        Return language-detection confidence.
+        """
+
+        return self.detection_service.detect_confidence(
+            text
+        )
+
+    # =====================================================
+    # 📝 DETECT SCRIPT
+    # =====================================================
+
+    def detect_script(
+        self,
+        text: str,
+    ) -> Optional[str]:
+        """
+        Return detected writing script.
+        """
+
+        return self.detection_service.detect_script(
+            text
+        )
 
     # =====================================================
     # 🔄 TRANSLATION
@@ -92,12 +156,12 @@ class LanguageEngineManager:
         text: str,
         target_language: str,
         source_language: Optional[str] = None,
+        metadata: Optional[
+            Dict[str, str]
+        ] = None,
     ) -> TranslationResult:
         """
         Translate text through the configured translator.
-
-        A translator implementation must be supplied before
-        translation can be executed.
         """
 
         if self.translator is None:
@@ -110,9 +174,28 @@ class LanguageEngineManager:
             source_language=source_language,
             target_language=target_language,
             operation="translate",
+            metadata=(
+                metadata
+                if metadata is not None
+                else {}
+            ),
         )
 
-        if hasattr(self.translator, "translate"):
+        if hasattr(
+            self.translator,
+            "translate_request",
+        ):
+
+            result = (
+                self.translator.translate_request(
+                    request
+                )
+            )
+
+        elif hasattr(
+            self.translator,
+            "translate",
+        ):
 
             result = self.translator.translate(
                 request
@@ -120,7 +203,9 @@ class LanguageEngineManager:
 
         elif callable(self.translator):
 
-            result = self.translator(request)
+            result = self.translator(
+                request
+            )
 
         else:
 
@@ -133,7 +218,6 @@ class LanguageEngineManager:
             result,
             TranslationResult,
         ):
-
             raise TypeError(
                 "Translation provider must return "
                 "TranslationResult."
@@ -165,22 +249,38 @@ class LanguageEngineManager:
             source_language=source_language,
             operation="transliterate",
             metadata={
-                "target_script": target_script
+                "target_script": target_script,
             },
         )
 
         if hasattr(
             self.transliterator,
+            "transliterate_request",
+        ):
+
+            result = (
+                self.transliterator
+                .transliterate_request(
+                    request
+                )
+            )
+
+        elif hasattr(
+            self.transliterator,
             "transliterate",
         ):
 
-            result = self.transliterator.transliterate(
-                request
+            result = (
+                self.transliterator.transliterate(
+                    request
+                )
             )
 
         elif callable(self.transliterator):
 
-            result = self.transliterator(request)
+            result = self.transliterator(
+                request
+            )
 
         else:
 
@@ -193,7 +293,6 @@ class LanguageEngineManager:
             result,
             TransliterationResult,
         ):
-
             raise TypeError(
                 "Transliteration provider must return "
                 "TransliterationResult."
@@ -212,8 +311,6 @@ class LanguageEngineManager:
     ) -> SpeechResult:
         """
         Convert speech/audio into text.
-
-        The actual speech provider is injected separately.
         """
 
         if self.speech_engine is None:
@@ -226,7 +323,7 @@ class LanguageEngineManager:
             source_language=language_code,
             operation="speech_to_text",
             metadata={
-                "audio_reference": audio_reference
+                "audio_reference": audio_reference,
             },
         )
 
@@ -235,13 +332,17 @@ class LanguageEngineManager:
             "speech_to_text",
         ):
 
-            result = self.speech_engine.speech_to_text(
-                request
+            result = (
+                self.speech_engine.speech_to_text(
+                    request
+                )
             )
 
         elif callable(self.speech_engine):
 
-            result = self.speech_engine(request)
+            result = self.speech_engine(
+                request
+            )
 
         else:
 
@@ -254,7 +355,6 @@ class LanguageEngineManager:
             result,
             SpeechResult,
         ):
-
             raise TypeError(
                 "Speech provider must return SpeechResult."
             )
@@ -272,8 +372,6 @@ class LanguageEngineManager:
     ) -> SpeechResult:
         """
         Convert text into speech/audio.
-
-        The actual speech provider is injected separately.
         """
 
         if self.speech_engine is None:
@@ -292,13 +390,17 @@ class LanguageEngineManager:
             "text_to_speech",
         ):
 
-            result = self.speech_engine.text_to_speech(
-                request
+            result = (
+                self.speech_engine.text_to_speech(
+                    request
+                )
             )
 
         elif callable(self.speech_engine):
 
-            result = self.speech_engine(request)
+            result = self.speech_engine(
+                request
+            )
 
         else:
 
@@ -311,7 +413,6 @@ class LanguageEngineManager:
             result,
             SpeechResult,
         ):
-
             raise TypeError(
                 "Speech provider must return SpeechResult."
             )
@@ -328,8 +429,7 @@ class LanguageEngineManager:
         language_code: Optional[str] = None,
     ) -> LanguageSearchResult:
         """
-        Perform multilingual search through the configured
-        search engine.
+        Perform multilingual search.
         """
 
         if self.search_engine is None:
@@ -345,6 +445,17 @@ class LanguageEngineManager:
 
         if hasattr(
             self.search_engine,
+            "search_request",
+        ):
+
+            result = (
+                self.search_engine.search_request(
+                    request
+                )
+            )
+
+        elif hasattr(
+            self.search_engine,
             "search",
         ):
 
@@ -354,7 +465,9 @@ class LanguageEngineManager:
 
         elif callable(self.search_engine):
 
-            result = self.search_engine(request)
+            result = self.search_engine(
+                request
+            )
 
         else:
 
@@ -367,7 +480,6 @@ class LanguageEngineManager:
             result,
             LanguageSearchResult,
         ):
-
             raise TypeError(
                 "Search provider must return "
                 "LanguageSearchResult."
@@ -376,7 +488,7 @@ class LanguageEngineManager:
         return result
 
     # =====================================================
-    # 🌐 REGISTER HUMAN LANGUAGE
+    # 🌍 REGISTER HUMAN LANGUAGE
     # =====================================================
 
     def register_human_language(
@@ -384,10 +496,10 @@ class LanguageEngineManager:
         language: Any,
     ) -> None:
         """
-        Register a human language in the global registry.
+        Register a human language.
         """
 
-        self.registry.register_human_language(
+        self.registry.register_language(
             language
         )
 
@@ -400,7 +512,7 @@ class LanguageEngineManager:
         language: Any,
     ) -> None:
         """
-        Register a programming language in the registry.
+        Register a programming language.
         """
 
         self.registry.register_programming_language(
@@ -408,32 +520,118 @@ class LanguageEngineManager:
         )
 
     # =====================================================
+    # 🌍 GET HUMAN LANGUAGE
+    # =====================================================
+
+    def get_human_language(
+        self,
+        language_code: str,
+    ) -> Any:
+        """
+        Retrieve a registered human language.
+        """
+
+        return self.registry.get_language(
+            language_code
+        )
+
+    # =====================================================
+    # 💻 GET PROGRAMMING LANGUAGE
+    # =====================================================
+
+    def get_programming_language(
+        self,
+        identifier: str,
+    ) -> Any:
+        """
+        Retrieve a programming language by key,
+        alias or extension.
+        """
+
+        return (
+            self.registry.get_programming_language(
+                identifier
+            )
+        )
+
+    # =====================================================
+    # 🌍 LIST HUMAN LANGUAGES
+    # =====================================================
+
+    def list_human_languages(
+        self,
+    ) -> list:
+        """
+        Return all registered human languages.
+        """
+
+        return self.registry.list_languages()
+
+    # =====================================================
+    # 💻 LIST PROGRAMMING LANGUAGES
+    # =====================================================
+
+    def list_programming_languages(
+        self,
+    ) -> list:
+        """
+        Return all registered programming languages.
+        """
+
+        return (
+            self.registry.list_programming_languages()
+        )
+
+    # =====================================================
     # 📊 ENGINE STATUS
     # =====================================================
 
-    def status(self) -> Dict[str, Any]:
+    def status(
+        self,
+    ) -> Dict[str, Any]:
         """
-        Return the current Language Engine status.
+        Return complete Language Engine status.
         """
+
+        registry_status = (
+            self.registry.status()
+        )
+
+        detection_status = (
+            self.detection_service.status()
+        )
 
         return {
             "engine": "language",
+
             "human_languages": (
-                self.registry.human_language_count()
+                registry_status[
+                    "human_languages"
+                ]
             ),
+
             "programming_languages": (
-                self.registry.programming_language_count()
+                registry_status[
+                    "programming_languages"
+                ]
             ),
-            "detection": True,
+
+            "detection": detection_status[
+                "configured"
+            ],
+
             "translation": (
                 self.translator is not None
             ),
+
             "transliteration": (
                 self.transliterator is not None
             ),
+
             "speech": (
                 self.speech_engine is not None
             ),
+
             "search": (
                 self.search_engine is not None
             ),
@@ -444,7 +642,9 @@ class LanguageEngineManager:
 # 🌍 DEFAULT LANGUAGE ENGINE
 # =========================================================
 
-DEFAULT_LANGUAGE_ENGINE = LanguageEngineManager()
+DEFAULT_LANGUAGE_ENGINE = (
+    LanguageEngineManager()
+)
 
 
 # =========================================================
