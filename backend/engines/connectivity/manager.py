@@ -5,12 +5,13 @@ from typing import Dict, List, Optional
 from .detectors import ConnectivityDetector
 from .models import (
     ConnectivityReport,
+    ServerStatus,
     SatelliteStatus,
 )
 from .scanner import NetworkScanner
 from .security import ConnectivitySecurity
-from .server import ServerMonitor
 from .satellite import SatelliteMonitor
+from .server import ServerMonitor
 
 from .platforms.android import AndroidConnectivityPlatform
 from .platforms.ios import IOSConnectivityPlatform
@@ -24,7 +25,9 @@ class ConnectivityEngine:
 
     def __init__(
         self,
-        servers: Optional[List[Dict[str, object]]] = None,
+        servers: Optional[
+            List[Dict[str, object]]
+        ] = None,
         satellite_provider: Optional[str] = None,
     ):
         self.detector = ConnectivityDetector()
@@ -63,7 +66,6 @@ class ConnectivityEngine:
         """Build a unified connectivity report."""
 
         device = self.detector.device_information()
-
         state = self.detector.connectivity_state()
 
         adapter = self._platform_adapter()
@@ -76,62 +78,44 @@ class ConnectivityEngine:
 
         capabilities: Dict[str, bool] = {}
 
-        platform_state: Dict[str, object] = {}
-
         if adapter:
             capabilities = adapter.capabilities()
 
             platform_state = adapter.connectivity()
 
             wifi = (
-                platform_state.get("wifi") is True
+                platform_state.get("wifi")
+                is True
             )
 
             ethernet = (
-                platform_state.get("ethernet") is True
+                platform_state.get("ethernet")
+                is True
             )
 
             mobile_data = (
-                platform_state.get("mobile_data") is True
+                platform_state.get("mobile_data")
+                is True
             )
 
             vpn = (
-                platform_state.get("vpn") is True
+                platform_state.get("vpn")
+                is True
             )
 
             hotspot = (
-                platform_state.get("hotspot") is True
+                platform_state.get("hotspot")
+                is True
             )
-
-        # --------------------------------------------------
-        # VISIBLE NETWORKS
-        # --------------------------------------------------
 
         visible_networks = self.scanner.scan()
 
-        # --------------------------------------------------
-        # CURRENT NETWORK
-        # --------------------------------------------------
-
         current_network: Optional[str] = None
 
-        adapter_network = platform_state.get(
-            "current_network"
-        )
-
-        if adapter_network:
-            current_network = str(
-                adapter_network
-            )
-
-        elif visible_networks:
+        if visible_networks:
             current_network = (
                 visible_networks[0].ssid
             )
-
-        # --------------------------------------------------
-        # NETWORK SECURITY
-        # --------------------------------------------------
 
         network_security = "UNKNOWN"
 
@@ -140,14 +124,30 @@ class ConnectivityEngine:
                 visible_networks[0].security
             )
 
-        # --------------------------------------------------
-        # SECURITY ASSESSMENT
-        # --------------------------------------------------
+        internet = bool(
+            state.get("internet", False)
+        )
+
+        online = bool(
+            state.get("online", internet)
+        )
+
+        offline = not online
+
+        server_results = (
+            self.server_monitor.check_all()
+        )
+
+        satellite_status = (
+            self.satellite_monitor.status()
+        )
+
+        satellite_online = bool(
+            satellite_status.online
+        )
 
         security_result = self.security.assess(
-            internet=bool(
-                state.get("internet", False)
-            ),
+            internet=internet,
             wifi=wifi,
             ethernet=ethernet,
             hotspot=hotspot,
@@ -156,103 +156,19 @@ class ConnectivityEngine:
             network_security=network_security,
         )
 
-        # --------------------------------------------------
-        # SERVER MONITORING
-        # --------------------------------------------------
-
-        servers = self.server_monitor.check_all()
-
-        # --------------------------------------------------
-        # SATELLITE STATUS
-        # --------------------------------------------------
-
-        satellite_status = (
-            self.satellite_monitor.status()
-        )
-
-        satellite_connected = (
-            satellite_status.connected
-        )
-
-        satellite_online = (
-            satellite_status.online
-        )
-
-        # --------------------------------------------------
-        # ONLINE / OFFLINE
-        # --------------------------------------------------
-
-        internet_online = bool(
-            state.get("internet", False)
-        )
-
-        online = (
-            internet_online
-            or satellite_online
-        )
-
-        offline = not online
-
-        # --------------------------------------------------
-        # HEALTH
-        # --------------------------------------------------
-
-        health = str(
-            state.get(
-                "health",
-                "UNKNOWN",
-            )
-        )
-
-        status = str(
-            state.get(
-                "status",
-                "UNKNOWN",
-            )
-        )
-
-        reason = str(
-            state.get(
-                "reason",
-                "",
-            )
-        )
-
-        # Satellite can provide connectivity
-        # even when normal Internet detection fails.
-
-        if satellite_online:
-            online = True
-            offline = False
-            status = "ONLINE"
-            health = "HEALTHY"
-            reason = (
-                "Satellite connectivity detected."
-            )
-
-        # --------------------------------------------------
-        # FINAL REPORT
-        # --------------------------------------------------
-
         self.report = ConnectivityReport(
             device=device,
 
-            internet=internet_online,
-
+            internet=internet,
             wifi=wifi,
-
             ethernet=ethernet,
-
             mobile_data=mobile_data,
-
             hotspot=hotspot,
-
             vpn=vpn,
 
-            satellite=satellite_connected,
+            satellite=satellite_online,
 
             online=online,
-
             offline=offline,
 
             current_network=current_network,
@@ -263,11 +179,16 @@ class ConnectivityEngine:
 
             visible_networks=visible_networks,
 
-            servers=servers,
+            servers=server_results,
 
             satellite_status=satellite_status,
 
-            health=health,
+            health=str(
+                state.get(
+                    "health",
+                    "UNKNOWN",
+                )
+            ),
 
             security=str(
                 security_result.get(
@@ -276,13 +197,22 @@ class ConnectivityEngine:
                 )
             ),
 
-            status=status,
+            status=str(
+                state.get(
+                    "status",
+                    "UNKNOWN",
+                )
+            ),
 
-            reason=reason,
+            reason=state.get(
+                "reason"
+            ),
 
-            last_check=datetime.now(
-                timezone.utc
-            ).isoformat(),
+            last_check=(
+                datetime.now(
+                    timezone.utc
+                ).isoformat()
+            ),
 
             capabilities=capabilities,
         )
@@ -322,34 +252,26 @@ class ConnectivityEngine:
                 "status": server.status,
                 "error": server.error,
             }
-            for server in self.server_monitor.check_all()
+            for server in (
+                self.server_monitor.check_all()
+            )
         ]
 
     def satellite(self) -> dict:
         """Return current satellite connectivity status."""
 
+        status = (
+            self.satellite_monitor.status()
+        )
+
         return {
-            "provider": (
-                self.report.satellite_status.provider
-            ),
-            "connected": (
-                self.report.satellite_status.connected
-            ),
-            "online": (
-                self.report.satellite_status.online
-            ),
-            "signal": (
-                self.report.satellite_status.signal
-            ),
-            "latency_ms": (
-                self.report.satellite_status.latency_ms
-            ),
-            "status": (
-                self.report.satellite_status.status
-            ),
-            "source": (
-                self.report.satellite_status.source
-            ),
+            "provider": status.provider,
+            "connected": status.connected,
+            "online": status.online,
+            "signal": status.signal,
+            "latency_ms": status.latency_ms,
+            "status": status.status,
+            "source": status.source,
         }
 
     def ingest_satellite(
@@ -358,9 +280,21 @@ class ConnectivityEngine:
     ) -> dict:
         """Ingest approved satellite telemetry."""
 
-        self.satellite_monitor.ingest(data)
+        status = (
+            self.satellite_monitor.ingest(
+                data
+            )
+        )
 
-        return self.detect()
+        return {
+            "provider": status.provider,
+            "connected": status.connected,
+            "online": status.online,
+            "signal": status.signal,
+            "latency_ms": status.latency_ms,
+            "status": status.status,
+            "source": status.source,
+        }
 
     def health(self) -> dict:
         """Return connectivity health information."""
@@ -370,15 +304,19 @@ class ConnectivityEngine:
         return {
             "health": report["health"],
             "security": report["security"],
+
             "internet": report["internet"],
+            "online": report["online"],
+            "offline": report["offline"],
+
             "wifi": report["wifi"],
             "ethernet": report["ethernet"],
             "mobile_data": report["mobile_data"],
             "hotspot": report["hotspot"],
             "vpn": report["vpn"],
+
             "satellite": report["satellite"],
-            "online": report["online"],
-            "offline": report["offline"],
+
             "status": report["status"],
             "last_check": report["last_check"],
         }
@@ -392,10 +330,6 @@ class ConnectivityEngine:
         """Stop the connectivity engine."""
 
         self.report.status = "STOPPED"
-
-        self.report.online = False
-
-        self.report.offline = True
 
         return self.report.to_dict()
 
