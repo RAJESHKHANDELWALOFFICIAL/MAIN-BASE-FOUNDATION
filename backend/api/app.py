@@ -16,6 +16,7 @@ from backend.api.integrations import IntegrationsAPI
 from backend.api.integration_connections import (
     IntegrationConnectionsAPI,
 )
+from backend.api.ecosystem import EcosystemAPI
 
 
 app = FastAPI(
@@ -34,6 +35,7 @@ integrations_api = IntegrationsAPI()
 integration_connections_api = (
     IntegrationConnectionsAPI()
 )
+ecosystem_api = EcosystemAPI()
 
 
 # ==========================
@@ -334,6 +336,49 @@ def integration_connection_disconnect(
 
     return integration_connections_api.disconnect(
         provider
+    )
+
+
+# ==========================
+# SUPREME ECOSYSTEM
+# ==========================
+
+@app.get("/ecosystem")
+def ecosystem_status():
+    """Return Supreme Ecosystem status."""
+
+    return ecosystem_api.status()
+
+
+@app.get("/ecosystem/health")
+def ecosystem_health():
+    """Return Supreme Ecosystem health."""
+
+    return ecosystem_api.health()
+
+
+@app.get("/ecosystem/names")
+def ecosystem_names():
+    """Return registered ecosystem names."""
+
+    return ecosystem_api.names()
+
+
+@app.get("/ecosystem/list")
+def ecosystem_list():
+    """Return all registered ecosystems."""
+
+    return ecosystem_api.list()
+
+
+@app.get("/ecosystem/{ecosystem_id}")
+def ecosystem_get(
+    ecosystem_id: str,
+):
+    """Return one registered ecosystem."""
+
+    return ecosystem_api.get(
+        ecosystem_id
     )
 
 
