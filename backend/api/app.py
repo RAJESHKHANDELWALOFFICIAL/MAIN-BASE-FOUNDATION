@@ -17,6 +17,7 @@ from backend.api.integration_connections import (
     IntegrationConnectionsAPI,
 )
 from backend.api.ecosystem import EcosystemAPI
+from backend.api.storage import StorageAPI
 
 
 app = FastAPI(
@@ -30,12 +31,18 @@ app = FastAPI(
 # ==========================
 
 connectivity_api = ConnectivityAPI()
+
 cloud_api = CloudAPI()
+
 integrations_api = IntegrationsAPI()
+
 integration_connections_api = (
     IntegrationConnectionsAPI()
 )
+
 ecosystem_api = EcosystemAPI()
+
+storage_api = StorageAPI()
 
 
 # ==========================
@@ -96,7 +103,9 @@ def connectivity_satellite_ingest(
 ):
     """Ingest approved satellite telemetry."""
 
-    return connectivity_api.ingest_satellite(data)
+    return connectivity_api.ingest_satellite(
+        data
+    )
 
 
 @app.post("/connectivity/start")
@@ -380,6 +389,45 @@ def ecosystem_get(
     return ecosystem_api.get(
         ecosystem_id
     )
+
+
+# ==========================
+# STORAGE
+# ==========================
+
+@app.get("/storage")
+def storage_status():
+    """Return storage status."""
+
+    return storage_api.status()
+
+
+@app.get("/storage/health")
+def storage_health():
+    """Return storage health."""
+
+    return storage_api.health()
+
+
+@app.get("/storage/configuration")
+def storage_configuration():
+    """Return safe storage configuration."""
+
+    return storage_api.configuration()
+
+
+@app.post("/storage/connect")
+def storage_connect():
+    """Connect to the storage layer."""
+
+    return storage_api.connect()
+
+
+@app.post("/storage/disconnect")
+def storage_disconnect():
+    """Disconnect from the storage layer."""
+
+    return storage_api.disconnect()
 
 
 # ==========================
