@@ -1,27 +1,20 @@
-from dataclasses import dataclass, field
-from datetime import datetime
+"""MAIN BASE FOUNDATION role models."""
+
+from dataclasses import dataclass
 from typing import Optional
 
 
 @dataclass
 class Role:
+    """Represent a role assigned within an organization."""
 
-    id: Optional[int] = None
-
-    role_id: str = ""
-
-    role_name: str = ""
-
-    description: str = ""
-
-    level: int = 1
-
+    role_id: str
+    role_name: str
+    organization_id: str
+    holder_id: str
+    role_category: str
+    authority_level: int
+    scope: str
+    appointment_type: str
     status: str = "ACTIVE"
-
-    created_at: str = field(
-        default_factory=lambda: datetime.utcnow().isoformat()
-    )
-
-    updated_at: str = field(
-        default_factory=lambda: datetime.utcnow().isoformat()
-    )
+    description: Optional[str] = None

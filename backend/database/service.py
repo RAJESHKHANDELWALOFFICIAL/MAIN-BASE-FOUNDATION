@@ -1,145 +1,354 @@
-from backend.database.connection import DatabaseConnection
+"""MAIN BASE FOUNDATION database service.
+
+Central database service used by backend modules.
+
+Responsibilities:
+- database initialization
+- connection lifecycle
+- SQL execution
+- single-row queries
+- multi-row queries
+- transactions
+- rollback
+- health information
+
+The service intentionally keeps the database layer independent from
+authentication, authorization, permissions, roles, organizations,
+businesses, storage, and other higher-level modules.
+"""
+
+from __future__ import annotations
+
+import sqlite3
+from pathlib import Path
+from threading import RLock
+from typing import Any, Iterable, Optional, Sequence
 
 
 class DatabaseService:
+    """Central database service for MAIN BASE FOUNDATION."""
 
-    def __init__(self):
-        self.connection = DatabaseConnection().connect()
-
-    def initialize(self):
-
-        cursor = self.connection.cursor()
-
-        # ==========================
-        # SYSTEM INFO
-        # ==========================
-
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS system_info (
-
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-            foundation TEXT,
-            version TEXT
-
+    def __init__(
+        self,
+        database_path: Optional[str] = None,
+    ) -> None:
+        self.database_path = (
+            database_path
+            or "main_base_foundation.db"
         )
-        """)
 
-        # ==========================
-        # MASTER IDENTITY
-        # ==========================
+        self._connection: Optional[sqlite3.Connection] = None
+        self._lock = RLock()
 
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS master_identity (
+    # ------------------------------------------------------------------
+    # CONNECTION
+    # ------------------------------------------------------------------
 
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+    def connect(self) -> dict:
+        """Open the database connection."""
 
-            master_id TEXT UNIQUE,
-            identity_id TEXT UNIQUE,
-            supreme_id TEXT,
+        with self._lock:
+            if self._connection is not None:
+                return {
+                    "success": True,
+                    "status": "ALREADY_CONNECTED",
+                    "database": self.database_path,
+                }
 
-            full_name TEXT,
-            display_name TEXT,
-            username TEXT UNIQUE,
+            path = Path(self.database_path)
 
-            email TEXT,
-            phone TEXT,
+            if path.parent != Path("."):
+                path.parent.mkdir(
+                    parents=True,
+                    exist_ok=True,
+                )
 
-            country TEXT,
-            state TEXT,
-            city TEXT,
+            self._connection = sqlite3.connect(
+                str(path),
+                check_same_thread=False,
+            )
 
-            language TEXT,
-            timezone TEXT,
+            self._connection.row_factory = sqlite3.Row
 
-            status TEXT,
-            verified INTEGER,
+            return {
+                "success": True,
+                "status": "CONNECTED",
+                "database": self.database_path,
+            }
 
-            profile_photo TEXT,
-            profile_type TEXT,
+    def disconnect(self) -> dict:
+        """Close the database connection."""
 
-            version TEXT,
+        with self._lock:
+            if self._connection is None:
+                return {
+                    "success": True,
+                    "status": "ALREADY_DISCONNECTED",
+                }
 
-            created_at TEXT,
-            updated_at TEXT
+            self._connection.close()
+            self._connection = None
 
+            return {
+                "success": True,
+                "status": "DISCONNECTED",
+            }
+
+    # ------------------------------------------------------------------
+    # INITIALIZATION
+    # ------------------------------------------------------------------
+
+    def initialize(self) -> dict:
+        """Initialize the database foundation."""
+
+        self.connect()
+
+        self.execute(
+            """
+            CREATE TABLE IF NOT EXISTS system_metadata (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                key TEXT NOT NULL UNIQUE,
+                value TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+            """
         )
-        """)
 
-        # ==========================
-        # SUPREME OWNER
-        # ==========================
-
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS supreme_owner (
-
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-            master_id TEXT UNIQUE,
-            supreme_id TEXT UNIQUE,
-
-            owner_name TEXT,
-            username TEXT UNIQUE,
-            email TEXT,
-            phone TEXT,
-            password TEXT,
-
-            role TEXT,
-            level INTEGER,
-            status TEXT,
-
-            two_factor_enabled INTEGER,
-            recovery_email TEXT,
-            recovery_phone TEXT,
-
-            dashboard_name TEXT,
-            dashboard_theme TEXT,
-
-            system_version TEXT,
-
-            created_at TEXT,
-            updated_at TEXT
-
+        self.execute(
+            """
+            INSERT OR IGNORE INTO system_metadata
+            (key, value)
+            VALUES (?, ?)
+            """,
+            (
+                "database_version",
+                "1.0",
+            ),
         )
-        """)
-
-        self.connection.commit()
 
         return {
-            "database": "SQLite",
-            "status": "Initialized"
+            "success": True,
+            "status": "READY",
+            "database": self.database_path,
         }
 
-    def execute(self, query, parameters=()):
-        cursor = self.connection.cursor()
-        cursor.execute(query, parameters)
-        self.connection.commit()
-        return cursor
+    # ------------------------------------------------------------------
+    # INTERNAL CONNECTION
+    # ------------------------------------------------------------------
 
-    def fetchone(self, query, parameters=()):
-        cursor = self.connection.cursor()
-        cursor.execute(query, parameters)
-        return cursor.fetchone()
+    def _require_connection(self) -> sqlite3.Connection:
+        """Return an active connection."""
 
-    def fetchall(self, query, parameters=()):
-        cursor = self.connection.cursor()
-        cursor.execute(query, parameters)
-        return cursor.fetchall()
+        if self._connection is None:
+            self.connect()
 
-    def commit(self):
-        self.connection.commit()
+        if self._connection is None:
+            raise RuntimeError(
+                "Database connection could not be established."
+            )
 
-    def rollback(self):
-        self.connection.rollback()
+        return self._connection
 
-    def close(self):
-        self.connection.close()
+    # ------------------------------------------------------------------
+    # EXECUTION
+    # ------------------------------------------------------------------
 
-    def cursor(self):
-        return self.connection.cursor()
+    def execute(
+        self,
+        query: str,
+        parameters: Sequence[Any] | Iterable[Any] = (),
+    ) -> int:
+        """Execute one SQL statement and return affected rows."""
 
-    def health(self):
+        with self._lock:
+            connection = self._require_connection()
+
+            cursor = connection.cursor()
+
+            try:
+                cursor.execute(
+                    query,
+                    tuple(parameters),
+                )
+
+                connection.commit()
+
+                return cursor.rowcount
+
+            except Exception:
+                connection.rollback()
+                raise
+
+            finally:
+                cursor.close()
+
+    def executemany(
+        self,
+        query: str,
+        parameters: Iterable[Sequence[Any]],
+    ) -> int:
+        """Execute one SQL statement against multiple parameter sets."""
+
+        with self._lock:
+            connection = self._require_connection()
+
+            cursor = connection.cursor()
+
+            try:
+                cursor.executemany(
+                    query,
+                    [tuple(item) for item in parameters],
+                )
+
+                connection.commit()
+
+                return cursor.rowcount
+
+            except Exception:
+                connection.rollback()
+                raise
+
+            finally:
+                cursor.close()
+
+    # ------------------------------------------------------------------
+    # QUERIES
+    # ------------------------------------------------------------------
+
+    def fetchone(
+        self,
+        query: str,
+        parameters: Sequence[Any] | Iterable[Any] = (),
+    ) -> Optional[sqlite3.Row]:
+        """Return one database row."""
+
+        with self._lock:
+            connection = self._require_connection()
+
+            cursor = connection.cursor()
+
+            try:
+                cursor.execute(
+                    query,
+                    tuple(parameters),
+                )
+
+                return cursor.fetchone()
+
+            finally:
+                cursor.close()
+
+    def fetchall(
+        self,
+        query: str,
+        parameters: Sequence[Any] | Iterable[Any] = (),
+    ) -> list[sqlite3.Row]:
+        """Return all database rows."""
+
+        with self._lock:
+            connection = self._require_connection()
+
+            cursor = connection.cursor()
+
+            try:
+                cursor.execute(
+                    query,
+                    tuple(parameters),
+                )
+
+                return cursor.fetchall()
+
+            finally:
+                cursor.close()
+
+    # ------------------------------------------------------------------
+    # TRANSACTION
+    # ------------------------------------------------------------------
+
+    def begin(self) -> dict:
+        """Begin a transaction."""
+
+        with self._lock:
+            connection = self._require_connection()
+
+            connection.execute("BEGIN")
+
+            return {
+                "success": True,
+                "status": "TRANSACTION_STARTED",
+            }
+
+    def commit(self) -> dict:
+        """Commit the active transaction."""
+
+        with self._lock:
+            connection = self._require_connection()
+
+            connection.commit()
+
+            return {
+                "success": True,
+                "status": "TRANSACTION_COMMITTED",
+            }
+
+    def rollback(self) -> dict:
+        """Rollback the active transaction."""
+
+        with self._lock:
+            connection = self._require_connection()
+
+            connection.rollback()
+
+            return {
+                "success": True,
+                "status": "TRANSACTION_ROLLED_BACK",
+            }
+
+    # ------------------------------------------------------------------
+    # HEALTH
+    # ------------------------------------------------------------------
+
+    def health(self) -> dict:
+        """Return database health information."""
+
+        try:
+            self._require_connection()
+
+            self.fetchone(
+                "SELECT 1"
+            )
+
+            return {
+                "success": True,
+                "status": "HEALTHY",
+                "connected": True,
+                "database": self.database_path,
+            }
+
+        except Exception as exc:
+            return {
+                "success": False,
+                "status": "UNHEALTHY",
+                "connected": False,
+                "database": self.database_path,
+                "error": str(exc),
+            }
+
+    # ------------------------------------------------------------------
+    # INFORMATION
+    # ------------------------------------------------------------------
+
+    def status(self) -> dict:
+        """Return database service status."""
+
         return {
-            "database": "SQLite",
-            "status": "CONNECTED"
+            "service": "DatabaseService",
+            "database": self.database_path,
+            "connected": self._connection is not None,
         }
+
+
+__all__ = [
+    "DatabaseService",
+]
