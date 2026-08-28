@@ -1,9 +1,11 @@
+```python
 """
 MAIN BASE FOUNDATION
 
-SUPREME — Ecosystem Service
+SUPREME — Central Ecosystem Service
 
 Central service for managing:
+
 - Personal profiles
 - Professional profiles
 - Pages
@@ -11,11 +13,30 @@ Central service for managing:
 - Channels
 - Communities
 - Media assets
+- Entity ownership
+- Vaults
+- External integrations
 
-The service provides an in-memory ecosystem registry.
-Persistent database integration can be added through the
-existing SUPREME/database architecture without mixing
-business logic into the models.
+Architecture:
+
+SUPREME
+    ↓
+ECOSYSTEM
+    ├── ENTITIES
+    ├── OWNERSHIP
+    ├── VAULT
+    └── INTEGRATIONS
+
+Every ecosystem entity may have an ownership record.
+
+The creator can become PRIMARY_OWNER when the
+creator/owner identity is supplied.
+
+Security principle:
+- Ownership controls authority.
+- Vault controls protected references.
+- Integration controls external connections.
+- Raw credentials are never stored here.
 """
 
 from __future__ import annotations
@@ -41,6 +62,23 @@ from backend.supreme.ecosystem.community import (
     EcosystemCommunity,
 )
 
+from backend.supreme.ecosystem.ownership import (
+    OwnershipController,
+)
+
+from backend.supreme.ecosystem.vault import (
+    VaultController,
+)
+
+from backend.supreme.ecosystem.integration import (
+    IntegrationController,
+    IntegrationService,
+)
+
+
+# =========================================================
+# 🌐 ECOSYSTEM ENTITY
+# =========================================================
 
 EcosystemEntity = Union[
     PersonalProfile,
@@ -57,6 +95,10 @@ class EcosystemService:
     """Central SUPREME ecosystem service."""
 
     def __init__(self) -> None:
+
+        # =====================================================
+        # 👤 CORE ENTITY REGISTRIES
+        # =====================================================
 
         self._personal_profiles: Dict[
             str,
@@ -93,6 +135,36 @@ class EcosystemService:
             MediaAsset,
         ] = {}
 
+        # =====================================================
+        # 👑 OWNERSHIP
+        # =====================================================
+
+        self.ownership = OwnershipController()
+
+        # =====================================================
+        # 🔐 CENTRAL VAULT
+        # =====================================================
+
+        self.vault = VaultController()
+
+        # =====================================================
+        # 🔌 CENTRAL INTEGRATION
+        #
+        # IMPORTANT:
+        # IntegrationService receives the SAME VaultService
+        # instance used by the central Ecosystem Vault.
+        # =====================================================
+
+        self.integration = IntegrationController(
+            service=IntegrationService(
+                vault_service=self.vault.service
+            )
+        )
+
+        # =====================================================
+        # 🚀 STATE
+        # =====================================================
+
         self._initialized = False
 
     # =========================================================
@@ -100,7 +172,19 @@ class EcosystemService:
     # =========================================================
 
     def initialize(self) -> dict:
-        """Initialize the ecosystem service."""
+        """Initialize the complete ecosystem."""
+
+        ownership_status = (
+            self.ownership.initialize()
+        )
+
+        vault_status = (
+            self.vault.initialize()
+        )
+
+        integration_status = (
+            self.integration.initialize()
+        )
 
         self._initialized = True
 
@@ -108,7 +192,49 @@ class EcosystemService:
             "service": "SUPREME_ECOSYSTEM",
             "status": "READY",
             "initialized": True,
+            "layers": {
+                "ownership": ownership_status,
+                "vault": vault_status,
+                "integration": integration_status,
+            },
         }
+
+    # =========================================================
+    # 👑 INTERNAL OWNERSHIP CREATION
+    # =========================================================
+
+    def _create_entity_ownership(
+        self,
+        entity_id: str,
+        primary_owner_id: Optional[str],
+    ) -> None:
+        """
+        Create ownership for an entity.
+
+        If a creator/owner identity is supplied,
+        that identity becomes PRIMARY_OWNER.
+        """
+
+        if primary_owner_id is None:
+            return
+
+        if not isinstance(
+            primary_owner_id,
+            str,
+        ):
+            raise TypeError(
+                "primary_owner_id must be a string."
+            )
+
+        if not primary_owner_id.strip():
+            raise ValueError(
+                "primary_owner_id cannot be empty."
+            )
+
+        self.ownership.create_ownership(
+            entity_id=entity_id,
+            primary_owner_id=primary_owner_id,
+        )
 
     # =========================================================
     # 👤 PERSONAL PROFILE
@@ -117,11 +243,17 @@ class EcosystemService:
     def create_personal_profile(
         self,
         profile: PersonalProfile,
+        primary_owner_id: Optional[str] = None,
     ) -> PersonalProfile:
 
         self._personal_profiles[
             profile.profile_id
         ] = profile
+
+        self._create_entity_ownership(
+            entity_id=profile.profile_id,
+            primary_owner_id=primary_owner_id,
+        )
 
         return profile
 
@@ -162,11 +294,17 @@ class EcosystemService:
     def create_professional_profile(
         self,
         profile: ProfessionalProfile,
+        primary_owner_id: Optional[str] = None,
     ) -> ProfessionalProfile:
 
         self._professional_profiles[
             profile.profile_id
         ] = profile
+
+        self._create_entity_ownership(
+            entity_id=profile.profile_id,
+            primary_owner_id=primary_owner_id,
+        )
 
         return profile
 
@@ -207,11 +345,17 @@ class EcosystemService:
     def create_page(
         self,
         page: EcosystemPage,
+        primary_owner_id: Optional[str] = None,
     ) -> EcosystemPage:
 
         self._pages[
             page.page_id
         ] = page
+
+        self._create_entity_ownership(
+            entity_id=page.page_id,
+            primary_owner_id=primary_owner_id,
+        )
 
         return page
 
@@ -252,11 +396,17 @@ class EcosystemService:
     def create_group(
         self,
         group: EcosystemGroup,
+        primary_owner_id: Optional[str] = None,
     ) -> EcosystemGroup:
 
         self._groups[
             group.group_id
         ] = group
+
+        self._create_entity_ownership(
+            entity_id=group.group_id,
+            primary_owner_id=primary_owner_id,
+        )
 
         return group
 
@@ -297,11 +447,17 @@ class EcosystemService:
     def create_channel(
         self,
         channel: EcosystemChannel,
+        primary_owner_id: Optional[str] = None,
     ) -> EcosystemChannel:
 
         self._channels[
             channel.channel_id
         ] = channel
+
+        self._create_entity_ownership(
+            entity_id=channel.channel_id,
+            primary_owner_id=primary_owner_id,
+        )
 
         return channel
 
@@ -342,11 +498,17 @@ class EcosystemService:
     def create_community(
         self,
         community: EcosystemCommunity,
+        primary_owner_id: Optional[str] = None,
     ) -> EcosystemCommunity:
 
         self._communities[
             community.community_id
         ] = community
+
+        self._create_entity_ownership(
+            entity_id=community.community_id,
+            primary_owner_id=primary_owner_id,
+        )
 
         return community
 
@@ -426,39 +588,115 @@ class EcosystemService:
         )
 
     # =========================================================
-    # 📊 STATUS
+    # 👑 OWNERSHIP ACCESS
+    # =========================================================
+
+    def get_ownership(
+        self,
+        entity_id: str,
+    ):
+        """Return entity ownership."""
+
+        return self.ownership.get_ownership(
+            entity_id
+        )
+
+    def ownership_status(self) -> dict:
+        """Return ownership subsystem status."""
+
+        return self.ownership.status()
+
+    # =========================================================
+    # 🔐 VAULT ACCESS
+    # =========================================================
+
+    def get_vault(
+        self,
+        vault_id: str,
+    ):
+        """Return a vault."""
+
+        return self.vault.get_vault(
+            vault_id
+        )
+
+    def vault_status(self) -> dict:
+        """Return vault subsystem status."""
+
+        return self.vault.status()
+
+    # =========================================================
+    # 🔌 INTEGRATION ACCESS
+    # =========================================================
+
+    def get_integration(
+        self,
+        integration_id: str,
+        requested_by: str,
+    ):
+        """Return an authorized integration."""
+
+        return self.integration.get_integration(
+            integration_id=integration_id,
+            requested_by=requested_by,
+        )
+
+    def integration_status(self) -> dict:
+        """Return integration subsystem status."""
+
+        return self.integration.status()
+
+    # =========================================================
+    # 📊 COMPLETE STATUS
     # =========================================================
 
     def status(self) -> dict:
-        """Return ecosystem service status."""
+        """Return complete ecosystem status."""
 
         return {
             "service": "SUPREME_ECOSYSTEM",
             "initialized": self._initialized,
-            "personal_profiles": len(
-                self._personal_profiles
+
+            "entities": {
+                "personal_profiles": len(
+                    self._personal_profiles
+                ),
+                "professional_profiles": len(
+                    self._professional_profiles
+                ),
+                "pages": len(
+                    self._pages
+                ),
+                "groups": len(
+                    self._groups
+                ),
+                "channels": len(
+                    self._channels
+                ),
+                "communities": len(
+                    self._communities
+                ),
+                "media": len(
+                    self._media
+                ),
+            },
+
+            "ownership": (
+                self.ownership.status()
             ),
-            "professional_profiles": len(
-                self._professional_profiles
+
+            "vault": (
+                self.vault.status()
             ),
-            "pages": len(
-                self._pages
-            ),
-            "groups": len(
-                self._groups
-            ),
-            "channels": len(
-                self._channels
-            ),
-            "communities": len(
-                self._communities
-            ),
-            "media": len(
-                self._media
+
+            "integration": (
+                self.integration.status()
             ),
         }
 
 
 __all__ = [
+    "EcosystemEntity",
     "EcosystemService",
 ]
+```
