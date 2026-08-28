@@ -1,3 +1,4 @@
+```python
 """
 MAIN BASE FOUNDATION
 
@@ -13,6 +14,9 @@ Exposes:
 - Channels
 - Communities
 - Media
+- Ownership
+- Vault
+- Integrations
 - Ecosystem Service
 - Ecosystem Controller
 """
@@ -64,6 +68,60 @@ from .community import (
 
 
 # =========================================================
+# 👑 OWNERSHIP
+# =========================================================
+
+from .ownership import (
+    EcosystemRole,
+    OwnershipStatus,
+    OwnershipAssignment,
+    EntityOwnership,
+    OwnershipTransfer,
+    EcosystemPermission,
+    PermissionScope,
+    RolePermission,
+    AccessDecision,
+    OwnershipService,
+    OwnershipController,
+)
+
+
+# =========================================================
+# 🔐 VAULT
+# =========================================================
+
+from .vault import (
+    VaultType,
+    VaultStatus,
+    VaultSecretType,
+    VaultIntegrationReference,
+    EcosystemVault,
+    VaultAccessPolicy,
+    VaultAccessDecision,
+    VaultSecurity,
+    VaultService,
+    VaultController,
+)
+
+
+# =========================================================
+# 🔌 INTEGRATION
+# =========================================================
+
+from .integration import (
+    IntegrationProvider,
+    IntegrationType,
+    IntegrationStatus,
+    IntegrationCredentialReference,
+    EcosystemIntegration,
+    IntegrationAuthorization,
+    IntegrationAccessDecision,
+    IntegrationService,
+    IntegrationController,
+)
+
+
+# =========================================================
 # 🧠 SERVICE
 # =========================================================
 
@@ -87,31 +145,90 @@ from .controller import (
 
 __all__ = [
 
+    # -----------------------------------------------------
     # Media
+    # -----------------------------------------------------
+
     "MediaType",
     "MediaPurpose",
     "MediaAsset",
 
+    # -----------------------------------------------------
     # Profiles
+    # -----------------------------------------------------
+
     "PersonalProfile",
     "ProfessionalProfile",
     "ProfileMediaBinding",
 
+    # -----------------------------------------------------
     # Pages
+    # -----------------------------------------------------
+
     "PageType",
     "PageVisibility",
     "EcosystemPage",
 
+    # -----------------------------------------------------
     # Community
+    # -----------------------------------------------------
+
     "CommunityVisibility",
     "CommunityType",
     "EcosystemGroup",
     "EcosystemChannel",
     "EcosystemCommunity",
 
-    # Service
-    "EcosystemService",
+    # -----------------------------------------------------
+    # Ownership
+    # -----------------------------------------------------
 
-    # Controller
+    "EcosystemRole",
+    "OwnershipStatus",
+    "OwnershipAssignment",
+    "EntityOwnership",
+    "OwnershipTransfer",
+    "EcosystemPermission",
+    "PermissionScope",
+    "RolePermission",
+    "AccessDecision",
+    "OwnershipService",
+    "OwnershipController",
+
+    # -----------------------------------------------------
+    # Vault
+    # -----------------------------------------------------
+
+    "VaultType",
+    "VaultStatus",
+    "VaultSecretType",
+    "VaultIntegrationReference",
+    "EcosystemVault",
+    "VaultAccessPolicy",
+    "VaultAccessDecision",
+    "VaultSecurity",
+    "VaultService",
+    "VaultController",
+
+    # -----------------------------------------------------
+    # Integration
+    # -----------------------------------------------------
+
+    "IntegrationProvider",
+    "IntegrationType",
+    "IntegrationStatus",
+    "IntegrationCredentialReference",
+    "EcosystemIntegration",
+    "IntegrationAuthorization",
+    "IntegrationAccessDecision",
+    "IntegrationService",
+    "IntegrationController",
+
+    # -----------------------------------------------------
+    # Core Ecosystem
+    # -----------------------------------------------------
+
+    "EcosystemService",
     "EcosystemController",
 ]
+```
