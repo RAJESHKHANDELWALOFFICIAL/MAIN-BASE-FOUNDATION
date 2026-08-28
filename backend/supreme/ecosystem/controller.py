@@ -1,9 +1,11 @@
+```python
 """
 MAIN BASE FOUNDATION
 
 SUPREME — Ecosystem Controller
 
 Central controller for:
+
 - Personal profiles
 - Professional profiles
 - Pages
@@ -11,16 +13,21 @@ Central controller for:
 - Channels
 - Communities
 - Media
+- Ownership
+- Vault
+- Integrations
 
-The controller coordinates requests and delegates
-ecosystem operations to EcosystemService.
+The controller coordinates ecosystem requests
+and delegates business operations to EcosystemService.
 """
 
 from __future__ import annotations
 
-from typing import Any, List, Optional
+from typing import List, Optional
 
-from backend.supreme.ecosystem.media import MediaAsset
+from backend.supreme.ecosystem.media import (
+    MediaAsset,
+)
 
 from backend.supreme.ecosystem.profile import (
     PersonalProfile,
@@ -43,7 +50,7 @@ from backend.supreme.ecosystem.service import (
 
 
 class EcosystemController:
-    """Main controller for the SUPREME ecosystem."""
+    """Central controller for the SUPREME ecosystem."""
 
     def __init__(
         self,
@@ -61,7 +68,7 @@ class EcosystemController:
     # =========================================================
 
     def initialize(self) -> dict:
-        """Initialize the ecosystem service."""
+        """Initialize the complete ecosystem."""
 
         return self.service.initialize()
 
@@ -72,10 +79,12 @@ class EcosystemController:
     def create_personal_profile(
         self,
         profile: PersonalProfile,
+        primary_owner_id: Optional[str] = None,
     ) -> PersonalProfile:
 
         return self.service.create_personal_profile(
-            profile
+            profile=profile,
+            primary_owner_id=primary_owner_id,
         )
 
     def get_personal_profile(
@@ -109,10 +118,12 @@ class EcosystemController:
     def create_professional_profile(
         self,
         profile: ProfessionalProfile,
+        primary_owner_id: Optional[str] = None,
     ) -> ProfessionalProfile:
 
         return self.service.create_professional_profile(
-            profile
+            profile=profile,
+            primary_owner_id=primary_owner_id,
         )
 
     def get_professional_profile(
@@ -146,23 +157,31 @@ class EcosystemController:
     def create_page(
         self,
         page: EcosystemPage,
+        primary_owner_id: Optional[str] = None,
     ) -> EcosystemPage:
 
-        return self.service.create_page(page)
+        return self.service.create_page(
+            page=page,
+            primary_owner_id=primary_owner_id,
+        )
 
     def get_page(
         self,
         page_id: str,
     ) -> Optional[EcosystemPage]:
 
-        return self.service.get_page(page_id)
+        return self.service.get_page(
+            page_id
+        )
 
     def delete_page(
         self,
         page_id: str,
     ) -> bool:
 
-        return self.service.delete_page(page_id)
+        return self.service.delete_page(
+            page_id
+        )
 
     def list_pages(
         self,
@@ -177,23 +196,31 @@ class EcosystemController:
     def create_group(
         self,
         group: EcosystemGroup,
+        primary_owner_id: Optional[str] = None,
     ) -> EcosystemGroup:
 
-        return self.service.create_group(group)
+        return self.service.create_group(
+            group=group,
+            primary_owner_id=primary_owner_id,
+        )
 
     def get_group(
         self,
         group_id: str,
     ) -> Optional[EcosystemGroup]:
 
-        return self.service.get_group(group_id)
+        return self.service.get_group(
+            group_id
+        )
 
     def delete_group(
         self,
         group_id: str,
     ) -> bool:
 
-        return self.service.delete_group(group_id)
+        return self.service.delete_group(
+            group_id
+        )
 
     def list_groups(
         self,
@@ -208,23 +235,31 @@ class EcosystemController:
     def create_channel(
         self,
         channel: EcosystemChannel,
+        primary_owner_id: Optional[str] = None,
     ) -> EcosystemChannel:
 
-        return self.service.create_channel(channel)
+        return self.service.create_channel(
+            channel=channel,
+            primary_owner_id=primary_owner_id,
+        )
 
     def get_channel(
         self,
         channel_id: str,
     ) -> Optional[EcosystemChannel]:
 
-        return self.service.get_channel(channel_id)
+        return self.service.get_channel(
+            channel_id
+        )
 
     def delete_channel(
         self,
         channel_id: str,
     ) -> bool:
 
-        return self.service.delete_channel(channel_id)
+        return self.service.delete_channel(
+            channel_id
+        )
 
     def list_channels(
         self,
@@ -239,10 +274,12 @@ class EcosystemController:
     def create_community(
         self,
         community: EcosystemCommunity,
+        primary_owner_id: Optional[str] = None,
     ) -> EcosystemCommunity:
 
         return self.service.create_community(
-            community
+            community=community,
+            primary_owner_id=primary_owner_id,
         )
 
     def get_community(
@@ -307,11 +344,70 @@ class EcosystemController:
         return self.service.list_media()
 
     # =========================================================
+    # 👑 OWNERSHIP
+    # =========================================================
+
+    def get_ownership(
+        self,
+        entity_id: str,
+    ):
+
+        return self.service.get_ownership(
+            entity_id
+        )
+
+    def ownership_status(
+        self,
+    ) -> dict:
+
+        return self.service.ownership_status()
+
+    # =========================================================
+    # 🔐 VAULT
+    # =========================================================
+
+    def get_vault(
+        self,
+        vault_id: str,
+    ):
+
+        return self.service.get_vault(
+            vault_id
+        )
+
+    def vault_status(
+        self,
+    ) -> dict:
+
+        return self.service.vault_status()
+
+    # =========================================================
+    # 🔌 INTEGRATION
+    # =========================================================
+
+    def get_integration(
+        self,
+        integration_id: str,
+        requested_by: str,
+    ):
+
+        return self.service.get_integration(
+            integration_id=integration_id,
+            requested_by=requested_by,
+        )
+
+    def integration_status(
+        self,
+    ) -> dict:
+
+        return self.service.integration_status()
+
+    # =========================================================
     # 📊 STATUS
     # =========================================================
 
     def status(self) -> dict:
-        """Return ecosystem controller status."""
+        """Return complete ecosystem controller status."""
 
         return {
             "controller": "SUPREME_ECOSYSTEM",
@@ -322,3 +418,4 @@ class EcosystemController:
 __all__ = [
     "EcosystemController",
 ]
+```
