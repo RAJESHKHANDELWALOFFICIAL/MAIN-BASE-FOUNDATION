@@ -64,6 +64,7 @@ class IntegrationProvider(str, Enum):
     MICROSOFT = "MICROSOFT"
     AWS = "AWS"
     APPLE = "APPLE"
+    ONLYFANS = "ONLYFANS"
     GENERIC_WEB = "GENERIC_WEB"
 
 
