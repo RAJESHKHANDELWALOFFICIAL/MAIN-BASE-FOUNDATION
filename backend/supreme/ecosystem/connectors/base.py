@@ -1,74 +1,50 @@
 """
 MAIN BASE FOUNDATION
 
-SUPREME — Ecosystem Provider Connector Contract
+SUPREME — Ecosystem Provider Connector Base
 
-Common interface for external platform connectors.
+Common connector contract for external platforms.
 
-The connector layer is responsible for:
-- Provider identification
-- Initialization
-- Authorization handoff
-- Connection lifecycle
-- Disconnection
-- Health/status reporting
+The connector layer provides a controlled boundary between
+the SUPREME ecosystem and external provider platforms.
 
-Security principles:
-- No plaintext passwords
-- No OTP storage
-- No raw credentials in connector objects
-- Credentials are handled through secure references
-- Provider-specific authentication remains provider-controlled
+Design principles:
+- Provider-specific implementations remain separate.
+- No plaintext passwords are stored here.
+- No OTPs are stored here.
+- No provider credentials are exposed here.
+- Authorization remains controlled by the external provider.
+- Provider capabilities are explicit.
+- Unsupported operations must fail safely.
 """
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
-
-from backend.supreme.ecosystem.integration.model import (
-    IntegrationProvider,
-)
+from typing import Any, Dict, List
 
 
 class EcosystemProviderConnector(ABC):
     """
-    Abstract connector contract for external providers.
+    Abstract base connector for an external provider.
 
-    Concrete providers implement this contract without changing
-    the central IntegrationService architecture.
+    Every provider-specific connector must implement this
+    common interface.
     """
 
-    def __init__(
-        self,
-        provider: IntegrationProvider,
-    ) -> None:
-
-        self.provider = provider
-        self._initialized = False
+    provider_name: str = ""
+    provider_key: str = ""
 
     # =========================================================
-    # 🚀 INITIALIZE
+    # 🔎 PROVIDER INFORMATION
     # =========================================================
 
     @abstractmethod
-    def initialize(self) -> dict:
+    def provider_info(self) -> Dict[str, Any]:
         """
-        Initialize the provider connector.
+        Return non-secret provider information.
         """
-
         raise NotImplementedError
-
-    # =========================================================
-    # 🌐 PROVIDER
-    # =========================================================
-
-    def provider_name(self) -> str:
-        """
-        Return the provider name.
-        """
-
-        return self.provider.value
 
     # =========================================================
     # 🔐 AUTHORIZATION
@@ -78,15 +54,13 @@ class EcosystemProviderConnector(ABC):
     def authorization_url(
         self,
         state: str,
-        redirect_uri: str,
-    ) -> Optional[str]:
+    ) -> str:
         """
-        Return a provider authorization URL when supported.
+        Return the provider authorization URL.
 
-        Providers that do not expose a supported authorization
-        URL may return None.
+        The provider remains responsible for authentication
+        and authorization.
         """
-
         raise NotImplementedError
 
     # =========================================================
@@ -99,27 +73,35 @@ class EcosystemProviderConnector(ABC):
         authorization_reference: str,
     ) -> Dict[str, Any]:
         """
-        Establish a provider connection using an already
-        authorized provider reference.
+        Establish an authorized provider connection.
 
-        Raw credentials must not be passed into this method.
+        Raw credentials must never be returned.
         """
-
         raise NotImplementedError
 
     # =========================================================
-    # 🔌 DISCONNECT
+    # 🔌 DISCONNECTION
     # =========================================================
 
     @abstractmethod
     def disconnect(
         self,
-        connection_reference: str,
-    ) -> bool:
+        account_reference: str,
+    ) -> Dict[str, Any]:
         """
-        Disconnect an existing provider connection.
+        Disconnect an external provider account.
         """
+        raise NotImplementedError
 
+    # =========================================================
+    # 🛡️ CAPABILITIES
+    # =========================================================
+
+    @abstractmethod
+    def capabilities(self) -> List[str]:
+        """
+        Return supported provider capabilities.
+        """
         raise NotImplementedError
 
     # =========================================================
@@ -127,30 +109,11 @@ class EcosystemProviderConnector(ABC):
     # =========================================================
 
     @abstractmethod
-    def health(
-        self,
-        connection_reference: Optional[str] = None,
-    ) -> Dict[str, Any]:
+    def health(self) -> Dict[str, Any]:
         """
-        Return provider connector health information.
+        Return connector/provider health information.
         """
-
         raise NotImplementedError
-
-    # =========================================================
-    # 📊 STATUS
-    # =========================================================
-
-    def status(self) -> dict:
-        """
-        Return connector status.
-        """
-
-        return {
-            "connector": self.__class__.__name__,
-            "provider": self.provider.value,
-            "initialized": self._initialized,
-        }
 
 
 __all__ = [
