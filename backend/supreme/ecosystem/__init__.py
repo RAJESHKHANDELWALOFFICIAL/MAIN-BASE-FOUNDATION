@@ -1,4 +1,3 @@
-```python
 """
 MAIN BASE FOUNDATION
 
@@ -13,6 +12,7 @@ Exposes:
 - Groups
 - Channels
 - Communities
+- Links
 - Media
 - Ownership
 - Vault
@@ -20,6 +20,7 @@ Exposes:
 - Ecosystem Service
 - Ecosystem Controller
 """
+
 
 # =========================================================
 # 🖼️ MEDIA
@@ -64,6 +65,15 @@ from .community import (
     EcosystemGroup,
     EcosystemChannel,
     EcosystemCommunity,
+)
+
+
+# =========================================================
+# 🔗 LINKS
+# =========================================================
+
+from .link import (
+    EcosystemLink,
 )
 
 
@@ -180,6 +190,12 @@ __all__ = [
     "EcosystemCommunity",
 
     # -----------------------------------------------------
+    # Links
+    # -----------------------------------------------------
+
+    "EcosystemLink",
+
+    # -----------------------------------------------------
     # Ownership
     # -----------------------------------------------------
 
@@ -231,4 +247,3 @@ __all__ = [
     "EcosystemService",
     "EcosystemController",
 ]
-```
