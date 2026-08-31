@@ -4,8 +4,8 @@ MAIN BASE FOUNDATION
 SUPREME — Ecosystem Package
 """
 
-from .base import EcosystemProviderConnector
-from .registry import ConnectorRegistry, registry
+from .connectors.base import EcosystemProviderConnector
+from .connectors.registry import ConnectorRegistry, registry
 
 
 __all__ = [
