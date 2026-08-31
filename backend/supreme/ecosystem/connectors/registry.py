@@ -3,170 +3,160 @@ MAIN BASE FOUNDATION
 
 SUPREME — Ecosystem Provider Connector Registry
 
-Central registry for external provider connectors.
-
-Responsibilities:
-- Register provider connectors.
-- Retrieve a connector by provider key.
-- List registered providers.
-- Prevent accidental duplicate registration.
-- Keep provider implementations separate from the core ecosystem.
-
-Security principles:
-- Registry never stores passwords.
-- Registry never stores OTPs.
-- Registry never exposes raw credentials.
-- Provider authorization remains provider-controlled.
+Central registry for authorized ecosystem provider connectors.
 """
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Type
 
-from backend.supreme.ecosystem.connectors.base import (
-    EcosystemProviderConnector,
-)
+from .base import EcosystemProviderConnector
 
 
 class ConnectorRegistry:
     """
-    Central registry for SUPREME provider connectors.
+    Central registry for SUPREME ecosystem connectors.
     """
 
     def __init__(self) -> None:
-
         self._connectors: Dict[
             str,
-            EcosystemProviderConnector,
+            Type[EcosystemProviderConnector],
         ] = {}
 
-    # =========================================================
-    # ➕ REGISTER
-    # =========================================================
+    # =====================================================
+    # REGISTER
+    # =====================================================
 
     def register(
         self,
-        connector: EcosystemProviderConnector,
-    ) -> None:
+        connector_class: Type[EcosystemProviderConnector],
+    ) -> Type[EcosystemProviderConnector]:
         """
-        Register a provider connector.
+        Register a provider connector class.
         """
 
-        provider_key = (
-            connector.provider_key.strip().lower()
-        )
+        connector = connector_class()
 
-        if not provider_key:
+        provider_id = connector.provider_id()
+
+        if not provider_id:
             raise ValueError(
-                "Connector provider_key cannot be empty."
+                "Connector provider_id cannot be empty."
             )
 
-        if provider_key in self._connectors:
+        normalized_id = provider_id.strip().lower()
+
+        if normalized_id in self._connectors:
             raise ValueError(
-                f"Connector already registered: "
-                f"{provider_key}"
+                f"Connector already registered: {provider_id}"
             )
 
-        self._connectors[provider_key] = connector
+        self._connectors[
+            normalized_id
+        ] = connector_class
 
-    # =========================================================
-    # 🔎 GET
-    # =========================================================
+        return connector_class
+
+    # =====================================================
+    # UNREGISTER
+    # =====================================================
+
+    def unregister(
+        self,
+        provider_id: str,
+    ) -> bool:
+        """
+        Remove a registered connector.
+        """
+
+        normalized_id = provider_id.strip().lower()
+
+        if normalized_id not in self._connectors:
+            return False
+
+        del self._connectors[normalized_id]
+
+        return True
+
+    # =====================================================
+    # GET
+    # =====================================================
 
     def get(
         self,
-        provider_key: str,
-    ) -> Optional[
-        EcosystemProviderConnector
-    ]:
+        provider_id: str,
+    ) -> Optional[EcosystemProviderConnector]:
         """
-        Return a registered connector.
-        """
+        Return an instantiated connector.
 
-        key = provider_key.strip().lower()
-
-        return self._connectors.get(key)
-
-    # =========================================================
-    # ✅ REQUIRE
-    # =========================================================
-
-    def require(
-        self,
-        provider_key: str,
-    ) -> EcosystemProviderConnector:
-        """
-        Return a connector or raise an explicit error.
+        Returns None when the provider is not registered.
         """
 
-        connector = self.get(
-            provider_key
+        normalized_id = provider_id.strip().lower()
+
+        connector_class = self._connectors.get(
+            normalized_id
         )
 
-        if connector is None:
-            raise KeyError(
-                f"No connector registered for provider: "
-                f"{provider_key}"
-            )
+        if connector_class is None:
+            return None
 
-        return connector
+        return connector_class()
 
-    # =========================================================
-    # 📋 LIST
-    # =========================================================
+    # =====================================================
+    # EXISTS
+    # =====================================================
 
-    def list_providers(self) -> List[str]:
+    def exists(
+        self,
+        provider_id: str,
+    ) -> bool:
         """
-        Return registered provider keys.
+        Check whether a provider is registered.
+        """
+
+        normalized_id = provider_id.strip().lower()
+
+        return normalized_id in self._connectors
+
+    # =====================================================
+    # LIST
+    # =====================================================
+
+    def providers(self) -> List[str]:
+        """
+        Return all registered provider identifiers.
         """
 
         return sorted(
             self._connectors.keys()
         )
 
-    # =========================================================
-    # 🔢 COUNT
-    # =========================================================
+    # =====================================================
+    # COUNT
+    # =====================================================
 
     def count(self) -> int:
         """
         Return number of registered connectors.
         """
 
-        return len(
-            self._connectors
-        )
+        return len(self._connectors)
 
-    # =========================================================
-    # ❓ EXISTS
-    # =========================================================
 
-    def contains(
-        self,
-        provider_key: str,
-    ) -> bool:
-        """
-        Check whether a provider is registered.
-        """
+# =========================================================
+# GLOBAL REGISTRY
+# =========================================================
 
-        key = provider_key.strip().lower()
+registry = ConnectorRegistry()
 
-        return key in self._connectors
 
-    # =========================================================
-    # 🧹 CLEAR
-    # =========================================================
-
-    def clear(self) -> None:
-        """
-        Remove all registered connectors.
-
-        Intended for controlled initialization/testing.
-        """
-
-        self._connectors.clear()
-
+# =========================================================
+# PUBLIC API
+# =========================================================
 
 __all__ = [
     "ConnectorRegistry",
+    "registry",
 ]
