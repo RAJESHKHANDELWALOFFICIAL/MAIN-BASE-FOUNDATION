@@ -187,7 +187,7 @@ class BusinessDivision(str, Enum):
 
     INTERNATIONAL_TRADE = "INTERNATIONAL_TRADE"
     BUSINESS_SERVICES = "BUSINESS_SERVICES"
-
+    OPERATIONS = "OPERATIONS"
 
 # =========================================================
 # 🏠 ESTATE AREA TYPE
@@ -830,4 +830,3 @@ __all__ = [
     # Principles
     "MuktiPrinciples",
 ]
-    OPERATIONS = "OPERATIONS"
