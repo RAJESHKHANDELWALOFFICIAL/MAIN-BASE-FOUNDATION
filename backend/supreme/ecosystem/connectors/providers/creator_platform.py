@@ -17,6 +17,10 @@ from ..base import (
     EcosystemProviderConnector,
 )
 
+from .capabilities import (
+    ProviderCapability,
+)
+
 
 class CreatorPlatformConnector(
     EcosystemProviderConnector
@@ -24,38 +28,78 @@ class CreatorPlatformConnector(
     """Base connector for an authorized creator platform."""
 
     provider_name = "CREATOR_PLATFORM"
+
     provider_version = "1.0"
 
+    # =====================================================
+    # 🆔 PROVIDER INFORMATION
+    # =====================================================
+
     def provider_id(self) -> str:
+        """Return the stable provider identifier."""
+
         return "creator_platform"
 
+    # =====================================================
+    # ❤️ HEALTH CHECK
+    # =====================================================
+
     def health_check(self) -> ConnectorResult:
+        """Return safe connector health status."""
+
         return ConnectorResult(
             success=True,
             operation="HEALTH_CHECK",
             provider=self.provider_id(),
-            message="Creator platform connector is operational.",
+            message=(
+                "Creator platform connector is operational."
+            ),
         )
+
+    # =====================================================
+    # 🔐 AUTHORIZATION
+    # =====================================================
 
     def authorization_url(
         self,
         state: str,
     ) -> Optional[str]:
+        """
+        Return an authorization URL when a real provider
+        implementation supplies one.
+
+        The base creator-platform connector does not
+        provide a provider-specific URL.
+        """
+
         if not state.strip():
-            raise ValueError("state cannot be empty.")
+            raise ValueError(
+                "state cannot be empty."
+            )
 
         return None
+
+    # =====================================================
+    # 🔗 CONNECTION
+    # =====================================================
 
     def connect(
         self,
         authorization_reference: str,
     ) -> ConnectorResult:
+        """
+        Establish an authorized creator-platform
+        connection reference.
+        """
+
         if not authorization_reference.strip():
             return ConnectorResult(
                 success=False,
                 operation="CONNECT",
                 provider=self.provider_id(),
-                message="Authorization reference is required.",
+                message=(
+                    "Authorization reference is required."
+                ),
                 error_code="AUTHORIZATION_REQUIRED",
             )
 
@@ -63,19 +107,35 @@ class CreatorPlatformConnector(
             success=True,
             operation="CONNECT",
             provider=self.provider_id(),
-            message="Authorized creator-platform connection accepted.",
+            message=(
+                "Authorized creator-platform "
+                "connection accepted."
+            ),
+            data={
+                "provider_capability": (
+                    ProviderCapability.ACCOUNT.value
+                ),
+            },
         )
+
+    # =====================================================
+    # 🔌 DISCONNECTION
+    # =====================================================
 
     def disconnect(
         self,
         connection_reference: str,
     ) -> ConnectorResult:
+        """Disconnect an authorized account connection."""
+
         if not connection_reference.strip():
             return ConnectorResult(
                 success=False,
                 operation="DISCONNECT",
                 provider=self.provider_id(),
-                message="Connection reference is required.",
+                message=(
+                    "Connection reference is required."
+                ),
                 error_code="CONNECTION_REQUIRED",
             )
 
@@ -83,44 +143,106 @@ class CreatorPlatformConnector(
             success=True,
             operation="DISCONNECT",
             provider=self.provider_id(),
-            message="Creator-platform connection disconnected.",
+            message=(
+                "Creator-platform connection "
+                "disconnected."
+            ),
         )
+
+    # =====================================================
+    # 📋 CAPABILITIES
+    # =====================================================
 
     def capabilities(
         self,
     ) -> List[ConnectorCapability]:
+        """
+        Return generic creator-platform capabilities.
+
+        Actual availability must be determined by the
+        specific provider's official authorization/API.
+        """
+
         return [
             ConnectorCapability(
-                name="HEALTH_CHECK",
-                description="Check connector health.",
-                requires_authorization=False,
+                name=ProviderCapability.ACCOUNT.value,
+                description=(
+                    "Access provider account information "
+                    "where officially supported."
+                ),
+                requires_authorization=True,
             ),
+
             ConnectorCapability(
-                name="CONNECT",
-                description="Connect an authorized creator account.",
+                name=ProviderCapability.CONTENT.value,
+                description=(
+                    "Access creator content where "
+                    "officially supported."
+                ),
+                requires_authorization=True,
             ),
+
             ConnectorCapability(
-                name="DISCONNECT",
-                description="Disconnect an authorized account.",
+                name=(
+                    ProviderCapability.CONTENT_MANAGEMENT.value
+                ),
+                description=(
+                    "Manage creator content where "
+                    "officially supported."
+                ),
+                requires_authorization=True,
             ),
+
             ConnectorCapability(
-                name="ACCOUNT_INFO",
-                description="Access provider account information where officially supported.",
+                name=ProviderCapability.PUBLISHING.value,
+                description=(
+                    "Publish content where the provider "
+                    "officially supports publishing."
+                ),
+                requires_authorization=True,
             ),
+
             ConnectorCapability(
-                name="CONTENT_MANAGEMENT",
-                description="Manage creator content where officially supported.",
+                name=ProviderCapability.ANALYTICS.value,
+                description=(
+                    "Access creator analytics where "
+                    "officially supported."
+                ),
+                requires_authorization=True,
             ),
+
             ConnectorCapability(
-                name="ANALYTICS",
-                description="Access creator analytics where officially supported.",
+                name=ProviderCapability.REVENUE.value,
+                description=(
+                    "Access revenue information where "
+                    "officially supported."
+                ),
+                requires_authorization=True,
             ),
+
             ConnectorCapability(
-                name="REVENUE",
-                description="Access revenue information where officially supported.",
+                name=ProviderCapability.AFFILIATE.value,
+                description=(
+                    "Access affiliate functionality where "
+                    "officially supported."
+                ),
+                requires_authorization=True,
+            ),
+
+            ConnectorCapability(
+                name=ProviderCapability.WEBHOOK.value,
+                description=(
+                    "Receive provider events through "
+                    "officially supported webhooks."
+                ),
+                requires_authorization=True,
             ),
         ]
 
+
+# =========================================================
+# 📦 PUBLIC API
+# =========================================================
 
 __all__ = [
     "CreatorPlatformConnector",
