@@ -1,16 +1,9 @@
-```python
 """
 MAIN BASE FOUNDATION
 
 SUPREME — Ecosystem Integration Models
 
-Central integration models for:
-
-- Google
-- Microsoft
-- AWS
-- Apple
-- Other external providers
+Central integration models for external providers.
 
 Integration ownership:
 
@@ -64,8 +57,10 @@ class IntegrationProvider(str, Enum):
     MICROSOFT = "MICROSOFT"
     AWS = "AWS"
     APPLE = "APPLE"
-    ONLYFANS = "ONLYFANS"
+
     GENERIC_WEB = "GENERIC_WEB"
+
+    CREATOR_PLATFORM = "CREATOR_PLATFORM"
 
 
 # =========================================================
@@ -81,6 +76,7 @@ class IntegrationType(str, Enum):
     CLOUD = "CLOUD"
     IAM = "IAM"
     WEBHOOK = "WEBHOOK"
+    MANUAL = "MANUAL"
     OTHER = "OTHER"
 
 
@@ -93,12 +89,19 @@ class IntegrationStatus(str, Enum):
     """Integration lifecycle status."""
 
     PENDING = "PENDING"
+
     AUTHORIZED = "AUTHORIZED"
+
     CONNECTED = "CONNECTED"
+
     EXPIRED = "EXPIRED"
+
     REVOKED = "REVOKED"
+
     SUSPENDED = "SUSPENDED"
+
     DISCONNECTED = "DISCONNECTED"
+
     ERROR = "ERROR"
 
 
@@ -230,7 +233,6 @@ class EcosystemIntegration:
             )
 
         if not self.display_name.strip():
-
             self.display_name = (
                 f"{self.provider.value} "
                 f"Integration"
@@ -322,4 +324,3 @@ __all__ = [
     "IntegrationAuthorization",
     "IntegrationAccessDecision",
 ]
-```
