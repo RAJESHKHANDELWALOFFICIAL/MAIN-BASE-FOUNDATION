@@ -19,6 +19,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import List
 
+from .capabilities import ProviderCapability
+
 
 # =========================================================
 # 🌐 PROVIDER CATEGORY
@@ -79,7 +81,7 @@ class ProviderDefinition:
 
     official_domain: str = ""
 
-    capabilities: List[str] = field(
+    capabilities: List[ProviderCapability] = field(
         default_factory=list
     )
 
