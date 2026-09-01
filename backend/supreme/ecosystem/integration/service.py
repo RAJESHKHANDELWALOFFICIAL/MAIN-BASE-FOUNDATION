@@ -1,4 +1,3 @@
-```python
 """
 MAIN BASE FOUNDATION
 
@@ -6,16 +5,13 @@ SUPREME — Ecosystem Integration Service
 
 Central service for managing:
 
-- Google integrations
-- Microsoft integrations
-- AWS integrations
-- Apple integrations
-- Generic integrations
+- Provider integrations
 - Integration authorization
 - Integration status
 - Integration lifecycle
 - Vault association
 - Access verification
+- Provider connector access
 
 Security principles:
 - Every integration belongs to a vault.
@@ -23,11 +19,13 @@ Security principles:
 - Raw secrets are never returned.
 - Credentials are represented by secure references.
 - Provider-specific authentication remains outside this service.
+- Provider connectors operate only through authorized access.
 """
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from datetime import datetime, timezone
+from typing import Dict, List, Optional, Any
 
 from backend.supreme.ecosystem.integration.model import (
     EcosystemIntegration,
@@ -43,6 +41,11 @@ from backend.supreme.ecosystem.vault.service import (
     VaultService,
 )
 
+from backend.supreme.ecosystem.connectors.manager import (
+    ConnectorManager,
+    connector_manager as default_connector_manager,
+)
+
 
 class IntegrationService:
     """Central SUPREME ecosystem integration service."""
@@ -50,12 +53,21 @@ class IntegrationService:
     def __init__(
         self,
         vault_service: Optional[VaultService] = None,
+        connector_manager: Optional[
+            ConnectorManager
+        ] = None,
     ) -> None:
 
         self.vault_service = (
             vault_service
             if vault_service is not None
             else VaultService()
+        )
+
+        self.connector_manager = (
+            connector_manager
+            if connector_manager is not None
+            else default_connector_manager
         )
 
         self._integrations: Dict[
@@ -83,6 +95,7 @@ class IntegrationService:
         """Initialize the integration service."""
 
         self.vault_service.initialize()
+        self.connector_manager.initialize()
 
         self._initialized = True
 
@@ -90,6 +103,9 @@ class IntegrationService:
             "service": "SUPREME_ECOSYSTEM_INTEGRATION",
             "status": "READY",
             "initialized": True,
+            "connector_manager": (
+                self.connector_manager.status()
+            ),
         }
 
     # =========================================================
@@ -314,7 +330,7 @@ class IntegrationService:
         return integration
 
     # =========================================================
-    # ✅ AUTHORIZE
+    # 🔐 AUTHORIZE
     # =========================================================
 
     def authorize(
@@ -327,9 +343,8 @@ class IntegrationService:
         """
         Record provider authorization.
 
-        Actual OAuth/API authentication is performed by the
-        provider-specific connector. This service records
-        the resulting authorization state.
+        Actual provider authentication is performed by the
+        provider-specific connector.
         """
 
         integration = self._require_integration(
@@ -387,7 +402,7 @@ class IntegrationService:
         """
         Mark an already-authorized integration as connected.
 
-        The actual network/provider connection is handled by
+        The actual provider connection is handled by
         the provider-specific connector.
         """
 
@@ -465,6 +480,7 @@ class IntegrationService:
         )
 
         integration.active = False
+
         integration.updated_at = (
             self._now()
         )
@@ -512,6 +528,7 @@ class IntegrationService:
         )
 
         integration.active = False
+
         integration.updated_at = (
             self._now()
         )
@@ -581,12 +598,59 @@ class IntegrationService:
                 action="READ_INTEGRATION",
             )
 
-            if decision.allowed and integration.active:
+            if (
+                decision.allowed
+                and integration.active
+            ):
                 results.append(
                     integration
                 )
 
         return results
+
+    # =========================================================
+    # 🔌 CONNECTOR ACCESS
+    # =========================================================
+
+    def get_connector(
+        self,
+        provider_id: str,
+    ) -> Optional[
+        EcosystemProviderConnector
+    ]:
+        """
+        Return a registered provider connector.
+
+        No credentials are exposed.
+        """
+
+        return self.connector_manager.get_connector(
+            provider_id
+        )
+
+    def list_connector_providers(
+        self,
+    ) -> List[str]:
+        """Return registered connector providers."""
+
+        return self.connector_manager.providers()
+
+    def connector_status(
+        self,
+    ) -> Dict[str, Any]:
+        """Return safe connector manager status."""
+
+        return self.connector_manager.status()
+
+    def connector_health_check(
+        self,
+        provider_id: str,
+    ) -> ConnectorResult:
+        """Run a safe connector health check."""
+
+        return self.connector_manager.health_check(
+            provider_id
+        )
 
     # =========================================================
     # 🔎 INTERNAL HELPERS
@@ -644,8 +708,6 @@ class IntegrationService:
     def _now() -> str:
         """Return current UTC timestamp."""
 
-        from datetime import datetime, timezone
-
         return datetime.now(
             timezone.utc
         ).isoformat()
@@ -676,10 +738,12 @@ class IntegrationService:
                 for provider
                 in IntegrationProvider
             ],
+            "connector_manager": (
+                self.connector_manager.status()
+            ),
         }
 
 
 __all__ = [
     "IntegrationService",
 ]
-```
