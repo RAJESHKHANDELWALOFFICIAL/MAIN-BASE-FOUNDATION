@@ -830,3 +830,4 @@ __all__ = [
     # Principles
     "MuktiPrinciples",
 ]
+    OPERATIONS = "OPERATIONS"
