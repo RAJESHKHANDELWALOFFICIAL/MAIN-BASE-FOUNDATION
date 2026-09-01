@@ -4,10 +4,11 @@ MAIN BASE FOUNDATION
 SUPREME — Ecosystem Connector Public Interface
 
 Central public interface for:
-- Connector base contracts
+- Connector results
+- Connector capabilities
+- Provider connector base
 - Connector registry
 - Connector manager
-- Provider connectors
 """
 
 from .base import (
