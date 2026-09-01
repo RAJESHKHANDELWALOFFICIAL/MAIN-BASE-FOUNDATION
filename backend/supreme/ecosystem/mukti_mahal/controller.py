@@ -1,615 +1,441 @@
 """
 MAIN BASE FOUNDATION
 
-SUPREME — Mukti Mahal Ecosystem Controller
+SUPREME — Mukti Mahal Controller
 
 Central public control entry point for:
 
-- Mukti Mahal initialization
-- Adult verification
-- Identity verification
-- Consent
-- Creator eligibility
-- Couple eligibility
-- Content moderation
-- Content rights
-- Monetization
-- Payment references
-- Revenue
-- Security status
+- Mukti Mahal
+- Family members
+- Household staff
+- Estate areas
+- Pratap Group
+- Business divisions
+- Executive roles
+- Capability evaluations
+- Family visits
+- Mukti principles
+- Service status
 
-The controller delegates business rules to
-the corresponding service layers.
-
-Security:
-- No plaintext passwords.
-- No OTP storage.
-- No raw identity documents.
-- No raw payment credentials.
-- No authentication bypass.
+The controller delegates business rules
+to MuktiMahalService.
 """
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from .model import (
-    MuktiMahalAdultVerification,
-    MuktiMahalConsentRecord,
-    MuktiMahalContent,
-    MuktiMahalContentRights,
-    MuktiMahalIdentityVerification,
+    BusinessCapabilityEvaluation,
+    BusinessDivision,
+    BusinessExecutiveRole,
+    EstateAreaType,
+    FamilyGeneration,
+    MuktiMahal,
+    MuktiMahalEstateArea,
+    MuktiMahalFamilyMember,
+    MuktiMahalFamilyVisit,
+    MuktiMahalStaffMember,
+    MuktiPrinciples,
+    PratapGroup,
+    StaffType,
 )
 
-from .security import (
-    MuktiMahalSecurity,
-)
-
-from .verification import (
-    MuktiMahalVerificationService,
-)
-
-from .moderation import (
-    MuktiMahalModerationService,
-)
-
-from .monetization import (
-    MuktiMahalMonetizationService,
-    MuktiMahalPricing,
-    MuktiMahalPaymentProviderReference,
-    MuktiMahalMonetizationConfig,
-    MuktiMahalPaymentRecord,
-    MuktiMahalRevenueRecord,
+from .service import (
+    MuktiMahalService,
 )
 
 
 class MuktiMahalController:
-    """Central controller for the Mukti Mahal ecosystem."""
+    """Central controller for SUPREME Mukti Mahal."""
 
     def __init__(
         self,
-        verification_service: Optional[
-            MuktiMahalVerificationService
-        ] = None,
-        moderation_service: Optional[
-            MuktiMahalModerationService
-        ] = None,
-        monetization_service: Optional[
-            MuktiMahalMonetizationService
-        ] = None,
-        security: Optional[
-            MuktiMahalSecurity
+        service: Optional[
+            MuktiMahalService
         ] = None,
     ) -> None:
 
-        self.verification = (
-            verification_service
-            if verification_service is not None
-            else MuktiMahalVerificationService()
+        self.service = (
+            service
+            if service is not None
+            else MuktiMahalService()
         )
 
-        self.moderation = (
-            moderation_service
-            if moderation_service is not None
-            else MuktiMahalModerationService(
-                verification_service=self.verification
-            )
-        )
-
-        self.monetization = (
-            monetization_service
-            if monetization_service is not None
-            else MuktiMahalMonetizationService()
-        )
-
-        self.security = (
-            security
-            if security is not None
-            else MuktiMahalSecurity()
-        )
-
-        self._initialized = False
-
     # =========================================================
-    # 🚀 INITIALIZE
+    # 🚀 INITIALIZATION
     # =========================================================
 
-    def initialize(self) -> Dict[str, Any]:
-        """Initialize the complete Mukti Mahal ecosystem."""
+    def initialize(self) -> dict:
+        """Initialize Mukti Mahal control."""
 
-        if not self._initialized:
-
-            self.security.initialize()
-
-            self.verification.initialize()
-
-            self.moderation.initialize()
-
-            self.monetization.initialize()
-
-            self._initialized = True
-
-        return self.status()
+        return self.service.initialize()
 
     # =========================================================
-    # 🔞 ADULT VERIFICATION
+    # 🏰 MAHAL
     # =========================================================
 
-    def register_adult_verification(
+    def create_mahal(
         self,
-        verification: MuktiMahalAdultVerification,
-    ) -> MuktiMahalAdultVerification:
-        """Register an adult-verification result/reference."""
+        mahal: MuktiMahal,
+    ) -> MuktiMahal:
+        """Create a Mukti Mahal estate."""
 
-        self._ensure_initialized()
-
-        return self.verification.register_adult_verification(
-            verification
+        return self.service.create_mahal(
+            mahal
         )
 
-    def get_adult_verification(
+    def get_mahal(
         self,
-        verification_id: str,
+        mahal_id: str,
+    ) -> Optional[MuktiMahal]:
+        """Return a Mukti Mahal estate."""
+
+        return self.service.get_mahal(
+            mahal_id
+        )
+
+    def list_mahals(
+        self,
+    ) -> List[MuktiMahal]:
+        """Return all Mukti Mahal estates."""
+
+        return self.service.list_mahals()
+
+    # =========================================================
+    # 👨‍👩‍👧 FAMILY
+    # =========================================================
+
+    def add_family_member(
+        self,
+        member: MuktiMahalFamilyMember,
+        mahal_id: str,
+    ) -> MuktiMahalFamilyMember:
+        """Add a family member."""
+
+        return self.service.add_family_member(
+            member=member,
+            mahal_id=mahal_id,
+        )
+
+    def get_family_member(
+        self,
+        character_id: str,
     ) -> Optional[
-        MuktiMahalAdultVerification
+        MuktiMahalFamilyMember
     ]:
-        """Return an adult-verification record."""
+        """Return a family member."""
 
-        self._ensure_initialized()
-
-        return self.verification.get_adult_verification(
-            verification_id
+        return self.service.get_family_member(
+            character_id
         )
 
-    def is_verified_adult(
+    def list_family_members(
         self,
-        subject_id: str,
-    ) -> bool:
-        """Check adult eligibility."""
+        generation: Optional[
+            FamilyGeneration
+        ] = None,
+    ) -> List[
+        MuktiMahalFamilyMember
+    ]:
+        """Return family members."""
 
-        self._ensure_initialized()
-
-        return self.verification.is_verified_adult(
-            subject_id
-        )
-
-    # =========================================================
-    # 🪪 IDENTITY VERIFICATION
-    # =========================================================
-
-    def register_identity_verification(
-        self,
-        verification: MuktiMahalIdentityVerification,
-    ) -> MuktiMahalIdentityVerification:
-        """Register an identity-verification result/reference."""
-
-        self._ensure_initialized()
-
-        return self.verification.register_identity_verification(
-            verification
-        )
-
-    def is_verified_identity(
-        self,
-        subject_id: str,
-    ) -> bool:
-        """Check identity verification."""
-
-        self._ensure_initialized()
-
-        return self.verification.is_verified_identity(
-            subject_id
+        return self.service.list_family_members(
+            generation=generation
         )
 
     # =========================================================
-    # 🤝 CONSENT
+    # 👥 STAFF
     # =========================================================
 
-    def register_consent(
+    def add_staff_member(
         self,
-        consent: MuktiMahalConsentRecord,
-    ) -> MuktiMahalConsentRecord:
-        """Register an individual consent record."""
+        staff: MuktiMahalStaffMember,
+        mahal_id: str,
+    ) -> MuktiMahalStaffMember:
+        """Add a Mukti Mahal staff member."""
 
-        self._ensure_initialized()
-
-        return self.verification.register_consent(
-            consent
+        return self.service.add_staff_member(
+            staff=staff,
+            mahal_id=mahal_id,
         )
 
-    def has_active_consent(
+    def get_staff(
         self,
-        subject_id: str,
-    ) -> bool:
-        """Check active consent."""
+        staff_id: str,
+    ) -> Optional[
+        MuktiMahalStaffMember
+    ]:
+        """Return a staff member."""
 
-        self._ensure_initialized()
-
-        return self.verification.has_active_consent(
-            subject_id
+        return self.service.get_staff(
+            staff_id
         )
 
-    def revoke_consent(
+    def list_staff(
         self,
-        consent_id: str,
-    ) -> MuktiMahalConsentRecord:
-        """Revoke consent."""
+        staff_type: Optional[
+            StaffType
+        ] = None,
+    ) -> List[
+        MuktiMahalStaffMember
+    ]:
+        """Return staff members."""
 
-        self._ensure_initialized()
-
-        return self.verification.revoke_consent(
-            consent_id
-        )
-
-    # =========================================================
-    # 👤 INDIVIDUAL ELIGIBILITY
-    # =========================================================
-
-    def check_individual_eligibility(
-        self,
-        subject_id: str,
-    ) -> bool:
-        """Check adult + identity + consent eligibility."""
-
-        self._ensure_initialized()
-
-        return self.verification.check_individual_eligibility(
-            subject_id
+        return self.service.list_staff(
+            staff_type=staff_type
         )
 
     # =========================================================
-    # 👥 COUPLE ELIGIBILITY
+    # 🏠 ESTATE AREAS
     # =========================================================
 
-    def check_couple_eligibility(
+    def add_estate_area(
         self,
-        member_ids: List[str],
-    ) -> bool:
+        area: MuktiMahalEstateArea,
+        mahal_id: str,
+    ) -> MuktiMahalEstateArea:
+        """Add an estate area."""
+
+        return self.service.add_estate_area(
+            area=area,
+            mahal_id=mahal_id,
+        )
+
+    def get_estate_area(
+        self,
+        area_id: str,
+    ) -> Optional[
+        MuktiMahalEstateArea
+    ]:
+        """Return an estate area."""
+
+        return self.service.get_estate_area(
+            area_id
+        )
+
+    def list_estate_areas(
+        self,
+        area_type: Optional[
+            EstateAreaType
+        ] = None,
+        floor: Optional[int] = None,
+    ) -> List[
+        MuktiMahalEstateArea
+    ]:
+        """Return estate areas."""
+
+        return self.service.list_estate_areas(
+            area_type=area_type,
+            floor=floor,
+        )
+
+    # =========================================================
+    # 🏢 PRATAP GROUP
+    # =========================================================
+
+    def create_group(
+        self,
+        group: PratapGroup,
+    ) -> PratapGroup:
+        """Create a Pratap Group business entity."""
+
+        return self.service.create_group(
+            group
+        )
+
+    def get_group(
+        self,
+        group_id: str,
+    ) -> Optional[PratapGroup]:
+        """Return a business group."""
+
+        return self.service.get_group(
+            group_id
+        )
+
+    def list_groups(
+        self,
+    ) -> List[PratapGroup]:
+        """Return all business groups."""
+
+        return self.service.list_groups()
+
+    def add_business_division(
+        self,
+        group_id: str,
+        division: BusinessDivision,
+    ) -> PratapGroup:
+        """Add a business division."""
+
+        return self.service.add_business_division(
+            group_id=group_id,
+            division=division,
+        )
+
+    # =========================================================
+    # 👔 EXECUTIVE ROLES
+    # =========================================================
+
+    def assign_executive_role(
+        self,
+        character_id: str,
+        role: BusinessExecutiveRole,
+    ) -> MuktiMahalFamilyMember:
+        """Assign a family business role."""
+
+        return self.service.assign_executive_role(
+            character_id=character_id,
+            role=role,
+        )
+
+    # =========================================================
+    # 🎓 CAPABILITY EVALUATION
+    # =========================================================
+
+    def register_capability_evaluation(
+        self,
+        evaluation: BusinessCapabilityEvaluation,
+    ) -> BusinessCapabilityEvaluation:
+        """Register a capability evaluation."""
+
+        return self.service.register_capability_evaluation(
+            evaluation
+        )
+
+    def get_capability_evaluation(
+        self,
+        evaluation_id: str,
+    ) -> Optional[
+        BusinessCapabilityEvaluation
+    ]:
+        """Return a capability evaluation."""
+
+        return self.service.get_capability_evaluation(
+            evaluation_id
+        )
+
+    def list_capability_evaluations(
+        self,
+        character_id: Optional[str] = None,
+    ) -> List[
+        BusinessCapabilityEvaluation
+    ]:
+        """Return capability evaluations."""
+
+        return self.service.list_capability_evaluations(
+            character_id=character_id
+        )
+
+    def qualify_executive_role(
+        self,
+        character_id: str,
+        role: BusinessExecutiveRole,
+    ) -> MuktiMahalFamilyMember:
         """
-        Check every participating member independently.
+        Qualify a family member for an executive role
+        after capability has been proven.
         """
 
-        self._ensure_initialized()
-
-        return self.verification.check_couple_eligibility(
-            member_ids
+        return self.service.qualify_executive_role(
+            character_id=character_id,
+            role=role,
         )
 
     # =========================================================
-    # 📋 VERIFICATION SUMMARY
+    # 🤝 FAMILY VISIT
     # =========================================================
 
-    def verification_summary(
+    def register_family_visit(
         self,
-        subject_id: str,
-    ) -> dict:
-        """Return a safe verification summary."""
+        visit: MuktiMahalFamilyVisit,
+    ) -> MuktiMahalFamilyVisit:
+        """Register a one-day family visit."""
 
-        self._ensure_initialized()
+        return self.service.register_family_visit(
+            visit
+        )
 
-        return self.verification.verification_summary(
-            subject_id
+    def complete_welcome(
+        self,
+        visit_id: str,
+    ) -> MuktiMahalFamilyVisit:
+        """Complete the welcome stage."""
+
+        return self.service.complete_welcome(
+            visit_id
+        )
+
+    def complete_introductions(
+        self,
+        visit_id: str,
+    ) -> MuktiMahalFamilyVisit:
+        """Complete family introductions."""
+
+        return self.service.complete_introductions(
+            visit_id
+        )
+
+    def complete_dinner(
+        self,
+        visit_id: str,
+    ) -> MuktiMahalFamilyVisit:
+        """Complete the family dinner."""
+
+        return self.service.complete_dinner(
+            visit_id
+        )
+
+    def complete_business_discussion(
+        self,
+        visit_id: str,
+    ) -> MuktiMahalFamilyVisit:
+        """Complete the business discussion."""
+
+        return self.service.complete_business_discussion(
+            visit_id
         )
 
     # =========================================================
-    # 🎬 CONTENT
+    # 📜 PRINCIPLES
     # =========================================================
 
-    def register_content(
+    def principles(
         self,
-        content: MuktiMahalContent,
-    ) -> MuktiMahalContent:
-        """Register content for moderation."""
+    ) -> MuktiPrinciples:
+        """Return Mukti Mahal principles."""
 
-        self._ensure_initialized()
-
-        return self.moderation.register_content(
-            content
-        )
-
-    # =========================================================
-    # 🛡️ CONTENT RIGHTS
-    # =========================================================
-
-    def register_content_rights(
-        self,
-        rights: MuktiMahalContentRights,
-    ) -> MuktiMahalContentRights:
-        """Register content-rights information."""
-
-        self._ensure_initialized()
-
-        return self.moderation.register_rights(
-            rights
-        )
-
-    def has_verified_rights(
-        self,
-        content_id: str,
-    ) -> bool:
-        """Check verified content rights."""
-
-        self._ensure_initialized()
-
-        return self.moderation.has_verified_rights(
-            content_id
-        )
-
-    # =========================================================
-    # 🔍 MODERATION
-    # =========================================================
-
-    def submit_for_review(
-        self,
-        content_id: str,
-    ) -> MuktiMahalContent:
-        """Submit content for moderation."""
-
-        self._ensure_initialized()
-
-        return self.moderation.submit_for_review(
-            content_id
-        )
-
-    def approve_content(
-        self,
-        content_id: str,
-        reviewer_id: str,
-    ) -> MuktiMahalContent:
-        """Approve content after moderation."""
-
-        self._ensure_initialized()
-
-        return self.moderation.approve(
-            content_id=content_id,
-            reviewer_id=reviewer_id,
-        )
-
-    def publish_content(
-        self,
-        content_id: str,
-    ) -> MuktiMahalContent:
-        """Publish approved content."""
-
-        self._ensure_initialized()
-
-        return self.moderation.publish(
-            content_id
-        )
-
-    def suspend_content(
-        self,
-        content_id: str,
-        reason: str,
-        reviewer_id: str,
-    ) -> MuktiMahalContent:
-        """Suspend content."""
-
-        self._ensure_initialized()
-
-        return self.moderation.suspend(
-            content_id=content_id,
-            reason=reason,
-            reviewer_id=reviewer_id,
-        )
-
-    def remove_content(
-        self,
-        content_id: str,
-        reason: str,
-        reviewer_id: str,
-    ) -> MuktiMahalContent:
-        """Remove content."""
-
-        self._ensure_initialized()
-
-        return self.moderation.remove(
-            content_id=content_id,
-            reason=reason,
-            reviewer_id=reviewer_id,
-        )
-
-    def moderation_decisions(
-        self,
-        content_id: Optional[str] = None,
-    ) -> List[dict]:
-        """Return safe moderation decisions."""
-
-        self._ensure_initialized()
-
-        return self.moderation.decisions(
-            content_id
-        )
-
-    # =========================================================
-    # 💵 PRICING
-    # =========================================================
-
-    def create_pricing(
-        self,
-        pricing: MuktiMahalPricing,
-    ) -> MuktiMahalPricing:
-        """Create a free or paid pricing configuration."""
-
-        self._ensure_initialized()
-
-        return self.monetization.create_pricing(
-            pricing
-        )
-
-    def get_pricing(
-        self,
-        pricing_id: str,
-    ) -> Optional[MuktiMahalPricing]:
-        """Return pricing."""
-
-        self._ensure_initialized()
-
-        return self.monetization.get_pricing(
-            pricing_id
-        )
-
-    # =========================================================
-    # 💳 PAYMENT PROVIDER
-    # =========================================================
-
-    def register_payment_provider(
-        self,
-        reference: MuktiMahalPaymentProviderReference,
-    ) -> MuktiMahalPaymentProviderReference:
-        """Register an authorized payment provider reference."""
-
-        self._ensure_initialized()
-
-        return self.monetization.register_payment_provider(
-            reference
-        )
-
-    # =========================================================
-    # 💰 MONETIZATION
-    # =========================================================
-
-    def create_monetization(
-        self,
-        config: MuktiMahalMonetizationConfig,
-    ) -> MuktiMahalMonetizationConfig:
-        """Create monetization configuration."""
-
-        self._ensure_initialized()
-
-        return self.monetization.create_configuration(
-            config
-        )
-
-    def activate_monetization(
-        self,
-        monetization_id: str,
-    ) -> MuktiMahalMonetizationConfig:
-        """Activate monetization."""
-
-        self._ensure_initialized()
-
-        return self.monetization.activate(
-            monetization_id
-        )
-
-    def pause_monetization(
-        self,
-        monetization_id: str,
-    ) -> MuktiMahalMonetizationConfig:
-        """Pause monetization."""
-
-        self._ensure_initialized()
-
-        return self.monetization.pause(
-            monetization_id
-        )
-
-    # =========================================================
-    # 🧾 PAYMENTS
-    # =========================================================
-
-    def record_payment(
-        self,
-        payment: MuktiMahalPaymentRecord,
-    ) -> MuktiMahalPaymentRecord:
-        """Record a payment-provider result."""
-
-        self._ensure_initialized()
-
-        return self.monetization.record_payment(
-            payment
-        )
-
-    # =========================================================
-    # 📈 REVENUE
-    # =========================================================
-
-    def record_revenue(
-        self,
-        revenue: MuktiMahalRevenueRecord,
-    ) -> MuktiMahalRevenueRecord:
-        """Record creator revenue."""
-
-        self._ensure_initialized()
-
-        return self.monetization.record_revenue(
-            revenue
-        )
-
-    def creator_revenue(
-        self,
-        creator_id: str,
-    ) -> int:
-        """Return total recorded creator net revenue."""
-
-        self._ensure_initialized()
-
-        return self.monetization.creator_revenue(
-            creator_id
-        )
-
-    # =========================================================
-    # 🔐 SECURITY
-    # =========================================================
-
-    def security_policy(self) -> dict:
-        """Return safe security policy."""
-
-        self._ensure_initialized()
-
-        return self.security.secret_policy()
-
-    def adult_access_requirements(self) -> dict:
-        """Return protected-access requirements."""
-
-        self._ensure_initialized()
-
-        return self.security.adult_access_requirements()
-
-    def couple_access_requirements(self) -> dict:
-        """Return couple-access requirements."""
-
-        self._ensure_initialized()
-
-        return self.security.couple_access_requirements()
-
-    def monetization_requirements(self) -> dict:
-        """Return monetization requirements."""
-
-        self._ensure_initialized()
-
-        return self.security.monetization_requirements()
+        return self.service.principles()
 
     # =========================================================
     # 📊 STATUS
     # =========================================================
 
     def status(self) -> dict:
-        """Return complete safe ecosystem status."""
+        """Return controller status."""
 
         return {
             "controller": (
-                "SUPREME_MUKTI_MAHAL_ECOSYSTEM"
+                "SUPREME_MUKTI_MAHAL"
             ),
-            "initialized": self._initialized,
-            "security": self.security.status(),
-            "verification": self.verification.status(),
-            "moderation": self.moderation.status(),
-            "monetization": self.monetization.status(),
+            "service": self.service.status(),
         }
 
-    # =========================================================
-    # 🔧 INTERNAL
-    # =========================================================
 
-    def _ensure_initialized(self) -> None:
-        """Ensure all dependent services are initialized."""
+# =========================================================
+# 🌍 DEFAULT CONTROLLER
+# =========================================================
 
-        if not self._initialized:
-            self.initialize()
+mukti_mahal_controller = (
+    MuktiMahalController()
+)
 
+
+# =========================================================
+# 📦 PUBLIC API
+# =========================================================
 
 __all__ = [
     "MuktiMahalController",
+    "mukti_mahal_controller",
 ]
