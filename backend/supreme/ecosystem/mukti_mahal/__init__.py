@@ -15,11 +15,14 @@ Central public interface for:
 - Capability evaluations
 - Family visits
 - Mukti principles
+- Seed data
+- Bootstrap
 - Mukti Mahal service
 - Mukti Mahal controller
 
 No credentials or secrets are exposed here.
 """
+
 
 # =========================================================
 # 🏰 MUKTI MAHAL MODELS
@@ -79,6 +82,47 @@ from .controller import (
 
 
 # =========================================================
+# 🌱 SEED DATA
+# =========================================================
+
+from .seed import (
+    MUKTI_MAHAL_ID,
+    PRATAP_GROUP_ID,
+
+    MUKTI_MAHAL,
+    PRATAP_GROUP,
+
+    DADA,
+    DADI,
+    PAPA,
+    MAA,
+    BADE_PAPA,
+    BADI_MAA,
+    CHACHA,
+    CHACHI,
+
+    YOUNG_GENERATION,
+    FAMILY_MEMBERS,
+
+    CORE_STAFF,
+    ESTATE_AREAS,
+
+    seed_summary,
+)
+
+
+# =========================================================
+# 🚀 BOOTSTRAP
+# =========================================================
+
+from .bootstrap import (
+    bootstrap_mukti_mahal,
+    create_default_mukti_mahal_service,
+    bootstrap_summary,
+)
+
+
+# =========================================================
 # 📦 PUBLIC API
 # =========================================================
 
@@ -122,4 +166,28 @@ __all__ = [
     # Controller
     "MuktiMahalController",
     "mukti_mahal_controller",
+
+    # Seed
+    "MUKTI_MAHAL_ID",
+    "PRATAP_GROUP_ID",
+    "MUKTI_MAHAL",
+    "PRATAP_GROUP",
+    "DADA",
+    "DADI",
+    "PAPA",
+    "MAA",
+    "BADE_PAPA",
+    "BADI_MAA",
+    "CHACHA",
+    "CHACHI",
+    "YOUNG_GENERATION",
+    "FAMILY_MEMBERS",
+    "CORE_STAFF",
+    "ESTATE_AREAS",
+    "seed_summary",
+
+    # Bootstrap
+    "bootstrap_mukti_mahal",
+    "create_default_mukti_mahal_service",
+    "bootstrap_summary",
 ]
