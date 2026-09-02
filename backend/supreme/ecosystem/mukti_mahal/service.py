@@ -21,6 +21,7 @@ Responsibilities:
 - Runtime status
 
 This service contains application state and business operations.
+
 Sensitive credentials, passwords, OTPs and payment secrets
 must never be stored here.
 """
@@ -33,6 +34,7 @@ from .model import (
     BusinessCapabilityEvaluation,
     BusinessDivision,
     BusinessExecutiveRole,
+    EstateAreaType,
     FamilyGeneration,
     FamilyRole,
     MuktiMahal,
@@ -43,6 +45,7 @@ from .model import (
     MuktiMahalStaffMember,
     MuktiPrinciples,
     PratapGroup,
+    StaffType,
 )
 
 
@@ -56,13 +59,9 @@ class MuktiMahalService:
     def __init__(self) -> None:
         self._initialized: bool = False
 
-        self._mahals: Dict[
-            str, MuktiMahal
-        ] = {}
+        self._mahals: Dict[str, MuktiMahal] = {}
 
-        self._groups: Dict[
-            str, PratapGroup
-        ] = {}
+        self._groups: Dict[str, PratapGroup] = {}
 
         self._family_members: Dict[
             str, MuktiMahalFamilyMember
@@ -92,10 +91,12 @@ class MuktiMahalService:
     # INITIALIZE
     # =====================================================
 
-    def initialize(self) -> None:
+    def initialize(self) -> dict:
         """Initialize the service runtime."""
 
         self._initialized = True
+
+        return self.status()
 
     # =====================================================
     # STATUS
@@ -109,24 +110,16 @@ class MuktiMahalService:
             "initialized": self._initialized,
             "mahals": len(self._mahals),
             "groups": len(self._groups),
-            "family_members": len(
-                self._family_members
-            ),
-            "staff_members": len(
-                self._staff
-            ),
-            "estate_areas": len(
-                self._estate_areas
-            ),
+            "family_members": len(self._family_members),
+            "staff_members": len(self._staff),
+            "estate_areas": len(self._estate_areas),
             "capability_evaluations": len(
                 self._capability_evaluations
             ),
             "family_visits": len(
                 self._family_visits
             ),
-            "settings": len(
-                self._settings
-            ),
+            "settings": len(self._settings),
         }
 
     # =====================================================
@@ -301,16 +294,14 @@ class MuktiMahalService:
             members = [
                 member
                 for member in members
-                if member.generation
-                == generation
+                if member.generation == generation
             ]
 
         if family_role is not None:
             members = [
                 member
                 for member in members
-                if member.family_role
-                == family_role
+                if member.family_role == family_role
             ]
 
         return members
@@ -367,12 +358,22 @@ class MuktiMahalService:
 
     def list_staff(
         self,
+        staff_type: Optional[StaffType] = None,
     ) -> List[MuktiMahalStaffMember]:
-        """List all staff."""
+        """List staff with an optional staff-type filter."""
 
-        return list(
+        staff_members = list(
             self._staff.values()
         )
+
+        if staff_type is not None:
+            staff_members = [
+                staff
+                for staff in staff_members
+                if staff.staff_type == staff_type
+            ]
+
+        return staff_members
 
     # =====================================================
     # 🏠 ESTATE MANAGEMENT
@@ -426,12 +427,32 @@ class MuktiMahalService:
 
     def list_estate_areas(
         self,
+        area_type: Optional[
+            EstateAreaType
+        ] = None,
+        floor: Optional[int] = None,
     ) -> List[MuktiMahalEstateArea]:
-        """List all estate areas."""
+        """List estate areas with optional filters."""
 
-        return list(
+        areas = list(
             self._estate_areas.values()
         )
+
+        if area_type is not None:
+            areas = [
+                area
+                for area in areas
+                if area.area_type == area_type
+            ]
+
+        if floor is not None:
+            areas = [
+                area
+                for area in areas
+                if area.floor == floor
+            ]
+
+        return areas
 
     # =====================================================
     # 👔 EXECUTIVE ROLE
@@ -529,8 +550,7 @@ class MuktiMahalService:
             evaluations = [
                 evaluation
                 for evaluation in evaluations
-                if evaluation.character_id
-                == character_id
+                if evaluation.character_id == character_id
             ]
 
         return evaluations
