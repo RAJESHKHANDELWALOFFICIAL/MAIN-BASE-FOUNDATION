@@ -85,18 +85,17 @@ class EngineManager:
         """
         return list(self.engines.keys())
 
-    def engine_status(self):
+       def engine_status(self):
         """
         Return status of every engine.
         """
         status = {}
 
         for name, engine in self.engines.items():
+            if hasattr(engine, "status"):
+                value = engine.status
+                status[name] = value() if callable(value) else value
+            else:
+                status[name] = "UNKNOWN"
 
-          if hasattr(engine, "status"):
-    value = engine.status
-    status[name] = value() if callable(value) else value
-else:
-    status[name] = "UNKNOWN"
-    
         return status
