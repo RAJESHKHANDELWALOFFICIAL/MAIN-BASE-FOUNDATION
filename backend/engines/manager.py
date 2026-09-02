@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 class EngineManager:
@@ -6,20 +6,21 @@ class EngineManager:
     def __init__(self):
         self.engines: Dict[str, Any] = {}
 
-    def register_engine(self, name: str, engine: Any):
+    def register_engine(self, name: str, engine: Any) -> bool:
         """
         Register a new engine.
         """
         self.engines[name] = engine
         return True
 
-    def unregister_engine(self, name: str):
+    def unregister_engine(self, name: str) -> bool:
         """
         Remove an engine.
         """
         if name in self.engines:
             del self.engines[name]
             return True
+
         return False
 
     def load_engine(self, name: str):
@@ -75,21 +76,21 @@ class EngineManager:
 
     def get_engine(self, name: str):
         """
-        Get engine instance.
+        Get an engine instance.
         """
         return self.engines.get(name)
 
     def list_engines(self):
-     """
-     List all registered engines.
-     """
+        """
+        List all registered engines.
+        """
         return list(self.engines.keys())
 
-       def engine_status(self):
+    def engine_status(self):
         """
-        Return status of every engine.
+        Return the status of every registered engine.
         """
-        status = {}
+        status: Dict[str, Any] = {}
 
         for name, engine in self.engines.items():
             if hasattr(engine, "status"):
