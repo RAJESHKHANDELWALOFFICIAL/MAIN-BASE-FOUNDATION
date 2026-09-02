@@ -1,499 +1,456 @@
 """
 MAIN BASE FOUNDATION
 
-SUPREME — Mukti Mahal Moderation Service
+SUPREME — Mukti Mahal Moderation
 
-Central content moderation lifecycle for:
+Provides moderation and safety governance for the Mukti Mahal
+ecosystem.
 
-- Content review
-- Rights verification
-- Consent verification
-- Adult-content eligibility
-- Publication approval
-- Suspension
-- Removal
+This module handles:
+- moderation states
+- content review
+- user/content reports
+- approval and rejection
+- safety enforcement
+- consent and privacy requirements
 
-Security principles:
-- No raw sensitive verification data is stored here.
-- No passwords, OTPs or payment credentials.
-- Moderation decisions are auditable.
-- Content cannot be published without required rights.
-- Protected adult content requires appropriate verification.
-- Consent withdrawal must be respected.
+No passwords, OTPs, authentication secrets, or payment credentials
+are stored here.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
 from typing import Dict, List, Optional
 
-from .model import (
-    MuktiMahalContent,
-    MuktiMahalContentRights,
-    MuktiMahalContentStatus,
-)
-from .verification import (
-    MuktiMahalVerificationService,
-)
+
+def _utc_now() -> datetime:
+    """Return the current UTC timestamp."""
+    return datetime.now(timezone.utc)
 
 
-class MuktiMahalModerationService:
-    """Central moderation service for Mukti Mahal."""
+class ModerationStatus(str, Enum):
+    """Possible moderation states."""
+
+    PENDING = "PENDING"
+    UNDER_REVIEW = "UNDER_REVIEW"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    FLAGGED = "FLAGGED"
+    SUSPENDED = "SUSPENDED"
+
+
+class ModerationReason(str, Enum):
+    """Standard moderation reasons."""
+
+    SAFETY = "SAFETY"
+    PRIVACY = "PRIVACY"
+    CONSENT = "CONSENT"
+    AGE_VERIFICATION = "AGE_VERIFICATION"
+    RIGHTS = "RIGHTS"
+    POLICY = "POLICY"
+    USER_REPORT = "USER_REPORT"
+    OTHER = "OTHER"
+
+
+@dataclass
+class ModerationRecord:
+    """Represents one moderation case."""
+
+    moderation_id: str
+    target_id: str
+    target_type: str
+
+    status: ModerationStatus = ModerationStatus.PENDING
+    reason: Optional[ModerationReason] = None
+
+    reviewer_id: Optional[str] = None
+    review_note: str = ""
+
+    created_at: datetime = field(default_factory=_utc_now)
+    updated_at: datetime = field(default_factory=_utc_now)
+
+    def __post_init__(self) -> None:
+        if not self.moderation_id:
+            raise ValueError("moderation_id is required")
+
+        if not self.target_id:
+            raise ValueError("target_id is required")
+
+        if not self.target_type:
+            raise ValueError("target_type is required")
+
+
+@dataclass
+class ModerationReport:
+    """Represents a report submitted against a target."""
+
+    report_id: str
+    target_id: str
+    target_type: str
+
+    reason: ModerationReason
+    description: str = ""
+
+    reporter_id: Optional[str] = None
+
+    resolved: bool = False
+    resolution_note: str = ""
+
+    created_at: datetime = field(default_factory=_utc_now)
+    updated_at: datetime = field(default_factory=_utc_now)
+
+    def __post_init__(self) -> None:
+        if not self.report_id:
+            raise ValueError("report_id is required")
+
+        if not self.target_id:
+            raise ValueError("target_id is required")
+
+        if not self.target_type:
+            raise ValueError("target_type is required")
+
+
+@dataclass
+class ModerationPolicy:
+    """
+    Platform-level moderation requirements.
+
+    These defaults establish safety boundaries without storing
+    sensitive personal information.
+    """
+
+    age_verification_required: bool = True
+    consent_required: bool = True
+    privacy_required: bool = True
+    rights_verification_required: bool = True
+    safety_review_required: bool = True
+    user_reporting_enabled: bool = True
+
+
+class MuktiMahalModeration:
+    """Central moderation service for the Mukti Mahal ecosystem."""
 
     def __init__(
         self,
-        verification_service: Optional[
-            MuktiMahalVerificationService
-        ] = None,
+        policy: Optional[ModerationPolicy] = None,
     ) -> None:
+        self.policy = policy or ModerationPolicy()
 
-        self.verification_service = (
-            verification_service
-            if verification_service is not None
-            else MuktiMahalVerificationService()
-        )
-
-        self._initialized = False
-
-        self._content: Dict[
-            str,
-            MuktiMahalContent,
-        ] = {}
-
-        self._rights: Dict[
-            str,
-            MuktiMahalContentRights,
-        ] = {}
-
-        self._decisions: List[dict] = []
+        self._records: Dict[str, ModerationRecord] = {}
+        self._reports: Dict[str, ModerationReport] = {}
 
     # =========================================================
-    # 🚀 INITIALIZE
+    # MODERATION RECORDS
     # =========================================================
 
-    def initialize(self) -> dict:
-        """Initialize moderation."""
-
-        self.verification_service.initialize()
-
-        self._initialized = True
-
-        return {
-            "service": (
-                "SUPREME_MUKTI_MAHAL_MODERATION"
-            ),
-            "status": "READY",
-            "initialized": True,
-        }
-
-    # =========================================================
-    # 🎬 REGISTER CONTENT
-    # =========================================================
-
-    def register_content(
+    def create_moderation(
         self,
-        content: MuktiMahalContent,
-    ) -> MuktiMahalContent:
-        """Register content for moderation."""
+        record: ModerationRecord,
+    ) -> ModerationRecord:
+        """Create a moderation case."""
 
-        if content.content_id in self._content:
-            raise ValueError(
-                "Content already registered."
-            )
+        if record.moderation_id in self._records:
+            raise ValueError("Moderation record already exists.")
 
-        self._content[
-            content.content_id
-        ] = content
+        self._records[record.moderation_id] = record
+        return record
 
-        return content
-
-    # =========================================================
-    # 🛡️ REGISTER RIGHTS
-    # =========================================================
-
-    def register_rights(
+    def get_moderation(
         self,
-        rights: MuktiMahalContentRights,
-    ) -> MuktiMahalContentRights:
-        """Register content-rights information."""
+        moderation_id: str,
+    ) -> Optional[ModerationRecord]:
+        """Get a moderation record."""
 
-        if rights.rights_id in self._rights:
-            raise ValueError(
-                "Rights record already registered."
-            )
+        return self._records.get(moderation_id)
 
-        if rights.content_id not in self._content:
-            raise ValueError(
-                "Content does not exist."
-            )
-
-        self._rights[
-            rights.rights_id
-        ] = rights
-
-        return rights
-
-    # =========================================================
-    # 🔎 RIGHTS CHECK
-    # =========================================================
-
-    def has_verified_rights(
+    def list_moderations(
         self,
-        content_id: str,
-    ) -> bool:
-        """Return whether verified rights exist."""
+        status: Optional[ModerationStatus] = None,
+        target_id: Optional[str] = None,
+    ) -> List[ModerationRecord]:
+        """List moderation records with optional filters."""
 
-        for rights in self._rights.values():
-            if (
-                rights.content_id == content_id
-                and rights.verified
-            ):
-                return True
+        records = list(self._records.values())
 
-        return False
+        if status is not None:
+            records = [
+                record
+                for record in records
+                if record.status == status
+            ]
+
+        if target_id is not None:
+            records = [
+                record
+                for record in records
+                if record.target_id == target_id
+            ]
+
+        return records
 
     # =========================================================
-    # 🔞 CREATOR CHECK
+    # REVIEW WORKFLOW
     # =========================================================
 
-    def creator_is_eligible(
+    def start_review(
         self,
-        creator_owner_id: str,
-    ) -> bool:
-        """Check creator eligibility."""
+        moderation_id: str,
+        reviewer_id: str,
+    ) -> ModerationRecord:
+        """Move a moderation case into review."""
 
-        return (
-            self.verification_service
-            .check_individual_eligibility(
-                creator_owner_id
-            )
-        )
+        if not reviewer_id:
+            raise ValueError("reviewer_id is required")
 
-    # =========================================================
-    # 🔍 SUBMIT FOR REVIEW
-    # =========================================================
+        record = self._require_moderation(moderation_id)
 
-    def submit_for_review(
-        self,
-        content_id: str,
-    ) -> MuktiMahalContent:
-        """Move content from draft to review."""
-
-        content = self._get_content(
-            content_id
-        )
-
-        if content.status not in (
-            MuktiMahalContentStatus.DRAFT,
-            MuktiMahalContentStatus.REVIEW,
+        if record.status not in (
+            ModerationStatus.PENDING,
+            ModerationStatus.FLAGGED,
         ):
             raise ValueError(
-                "Content cannot be submitted from its current state."
+                "Moderation record cannot enter review."
             )
 
-        content.status = (
-            MuktiMahalContentStatus.REVIEW
-        )
+        record.status = ModerationStatus.UNDER_REVIEW
+        record.reviewer_id = reviewer_id
+        record.updated_at = _utc_now()
 
-        self._record_decision(
-            content_id=content_id,
-            decision="SUBMITTED_FOR_REVIEW",
-            approved=False,
-            reason="Content submitted for moderation.",
-        )
-
-        return content
-
-    # =========================================================
-    # ✅ APPROVE
-    # =========================================================
+        return record
 
     def approve(
         self,
-        content_id: str,
+        moderation_id: str,
         reviewer_id: str,
-    ) -> MuktiMahalContent:
-        """
-        Approve content for publication.
+        note: str = "",
+    ) -> ModerationRecord:
+        """Approve a moderation case."""
 
-        Required:
-        - Existing content
-        - Eligible creator
-        - Verified content rights
-        """
+        record = self._require_moderation(moderation_id)
 
-        if not reviewer_id.strip():
-            raise ValueError(
-                "reviewer_id cannot be empty."
-            )
-
-        content = self._get_content(
-            content_id
+        self._require_reviewer(
+            reviewer_id,
+            record,
         )
 
-        creator_owner_id = self._creator_owner_id(
-            content
-        )
+        record.status = ModerationStatus.APPROVED
+        record.review_note = note
+        record.updated_at = _utc_now()
 
-        if not self.creator_is_eligible(
-            creator_owner_id
-        ):
-            self._record_decision(
-                content_id=content_id,
-                decision="REJECTED",
-                approved=False,
-                reason=(
-                    "Creator verification requirements "
-                    "are not satisfied."
-                ),
-            )
+        return record
 
-            raise PermissionError(
-                "Creator verification requirements are not satisfied."
-            )
-
-        if not self.has_verified_rights(
-            content_id
-        ):
-            self._record_decision(
-                content_id=content_id,
-                decision="REJECTED",
-                approved=False,
-                reason=(
-                    "Verified content rights are required."
-                ),
-            )
-
-            raise PermissionError(
-                "Verified content rights are required."
-            )
-
-        content.status = (
-            MuktiMahalContentStatus.APPROVED
-        )
-
-        self._record_decision(
-            content_id=content_id,
-            decision="APPROVED",
-            approved=True,
-            reason="Content approved by moderation.",
-            reviewer_id=reviewer_id,
-        )
-
-        return content
-
-    # =========================================================
-    # 📤 PUBLISH
-    # =========================================================
-
-    def publish(
+    def reject(
         self,
-        content_id: str,
-    ) -> MuktiMahalContent:
-        """Publish previously approved content."""
+        moderation_id: str,
+        reviewer_id: str,
+        reason: ModerationReason,
+        note: str = "",
+    ) -> ModerationRecord:
+        """Reject a moderation case."""
 
-        content = self._get_content(
-            content_id
+        record = self._require_moderation(moderation_id)
+
+        self._require_reviewer(
+            reviewer_id,
+            record,
         )
 
-        if content.status != (
-            MuktiMahalContentStatus.APPROVED
-        ):
-            raise PermissionError(
-                "Only approved content can be published."
-            )
+        record.status = ModerationStatus.REJECTED
+        record.reason = reason
+        record.review_note = note
+        record.updated_at = _utc_now()
 
-        content.status = (
-            MuktiMahalContentStatus.PUBLISHED
-        )
-
-        self._record_decision(
-            content_id=content_id,
-            decision="PUBLISHED",
-            approved=True,
-            reason="Approved content published.",
-        )
-
-        return content
-
-    # =========================================================
-    # ⏸️ SUSPEND
-    # =========================================================
+        return record
 
     def suspend(
         self,
-        content_id: str,
-        reason: str,
+        moderation_id: str,
         reviewer_id: str,
-    ) -> MuktiMahalContent:
-        """Suspend published or approved content."""
+        reason: ModerationReason,
+        note: str = "",
+    ) -> ModerationRecord:
+        """Suspend a moderation target."""
 
-        if not reason.strip():
-            raise ValueError(
-                "reason cannot be empty."
-            )
+        record = self._require_moderation(moderation_id)
 
-        if not reviewer_id.strip():
-            raise ValueError(
-                "reviewer_id cannot be empty."
-            )
-
-        content = self._get_content(
-            content_id
+        self._require_reviewer(
+            reviewer_id,
+            record,
         )
 
-        content.status = (
-            MuktiMahalContentStatus.SUSPENDED
-        )
+        record.status = ModerationStatus.SUSPENDED
+        record.reason = reason
+        record.review_note = note
+        record.updated_at = _utc_now()
 
-        self._record_decision(
-            content_id=content_id,
-            decision="SUSPENDED",
-            approved=False,
-            reason=reason,
-            reviewer_id=reviewer_id,
-        )
-
-        return content
+        return record
 
     # =========================================================
-    # ❌ REMOVE
+    # REPORTS
     # =========================================================
 
-    def remove(
+    def create_report(
         self,
-        content_id: str,
-        reason: str,
-        reviewer_id: str,
-    ) -> MuktiMahalContent:
-        """Remove content from publication."""
+        report: ModerationReport,
+    ) -> ModerationReport:
+        """Create a user or system moderation report."""
 
-        if not reason.strip():
+        if not self.policy.user_reporting_enabled:
             raise ValueError(
-                "reason cannot be empty."
+                "User reporting is currently disabled."
             )
 
-        if not reviewer_id.strip():
-            raise ValueError(
-                "reviewer_id cannot be empty."
-            )
+        if report.report_id in self._reports:
+            raise ValueError("Moderation report already exists.")
 
-        content = self._get_content(
-            content_id
-        )
+        self._reports[report.report_id] = report
 
-        content.status = (
-            MuktiMahalContentStatus.REMOVED
-        )
+        return report
 
-        self._record_decision(
-            content_id=content_id,
-            decision="REMOVED",
-            approved=False,
-            reason=reason,
-            reviewer_id=reviewer_id,
-        )
-
-        return content
-
-    # =========================================================
-    # 🔎 DECISION HISTORY
-    # =========================================================
-
-    def decisions(
+    def get_report(
         self,
-        content_id: Optional[str] = None,
-    ) -> List[dict]:
-        """Return moderation decisions."""
+        report_id: str,
+    ) -> Optional[ModerationReport]:
+        """Get a moderation report."""
 
-        if content_id is None:
-            return list(self._decisions)
+        return self._reports.get(report_id)
 
-        return [
-            decision
-            for decision in self._decisions
-            if decision["content_id"]
-            == content_id
-        ]
-
-    # =========================================================
-    # 🔧 INTERNAL HELPERS
-    # =========================================================
-
-    def _get_content(
+    def list_reports(
         self,
-        content_id: str,
-    ) -> MuktiMahalContent:
-        """Return content or raise an error."""
+        target_id: Optional[str] = None,
+        resolved: Optional[bool] = None,
+    ) -> List[ModerationReport]:
+        """List reports with optional filters."""
 
-        content = self._content.get(
-            content_id
-        )
+        reports = list(self._reports.values())
 
-        if content is None:
-            raise ValueError(
-                "Content does not exist."
-            )
+        if target_id is not None:
+            reports = [
+                report
+                for report in reports
+                if report.target_id == target_id
+            ]
 
-        return content
+        if resolved is not None:
+            reports = [
+                report
+                for report in reports
+                if report.resolved == resolved
+            ]
 
-    @staticmethod
-    def _creator_owner_id(
-        content: MuktiMahalContent,
-    ) -> str:
-        """
-        Resolve creator owner reference.
+        return reports
 
-        The current content model stores creator_id.
-        The service therefore uses that identifier as
-        the verification subject reference.
-        """
-
-        return content.creator_id
-
-    def _record_decision(
+    def resolve_report(
         self,
-        content_id: str,
-        decision: str,
-        approved: bool,
-        reason: str,
-        reviewer_id: str = "",
-    ) -> None:
-        """Record a safe moderation decision."""
+        report_id: str,
+        resolution_note: str = "",
+    ) -> ModerationReport:
+        """Resolve a moderation report."""
 
-        self._decisions.append(
-            {
-                "content_id": content_id,
-                "decision": decision,
-                "approved": approved,
-                "reason": reason,
-                "reviewer_id": reviewer_id,
-            }
-        )
+        report = self._require_report(report_id)
+
+        report.resolved = True
+        report.resolution_note = resolution_note
+        report.updated_at = _utc_now()
+
+        return report
 
     # =========================================================
-    # 📊 STATUS
+    # SAFETY POLICY
     # =========================================================
 
-    def status(self) -> dict:
-        """Return safe moderation status."""
+    def policy_status(self) -> dict:
+        """Return the active moderation policy."""
 
         return {
-            "service": (
-                "SUPREME_MUKTI_MAHAL_MODERATION"
+            "age_verification_required": (
+                self.policy.age_verification_required
             ),
-            "initialized": self._initialized,
-            "content_count": len(
-                self._content
+            "consent_required": self.policy.consent_required,
+            "privacy_required": self.policy.privacy_required,
+            "rights_verification_required": (
+                self.policy.rights_verification_required
             ),
-            "rights_count": len(
-                self._rights
+            "safety_review_required": (
+                self.policy.safety_review_required
             ),
-            "decision_count": len(
-                self._decisions
+            "user_reporting_enabled": (
+                self.policy.user_reporting_enabled
             ),
         }
 
+    # =========================================================
+    # STATUS
+    # =========================================================
+
+    def status(self) -> dict:
+        """Return safe moderation runtime status."""
+
+        return {
+            "service": "MUKTI_MAHAL_MODERATION",
+            "moderation_records": len(self._records),
+            "reports": len(self._reports),
+            "policy": self.policy_status(),
+        }
+
+    # =========================================================
+    # INTERNAL HELPERS
+    # =========================================================
+
+    def _require_moderation(
+        self,
+        moderation_id: str,
+    ) -> ModerationRecord:
+        """Return a moderation record or raise an error."""
+
+        record = self.get_moderation(moderation_id)
+
+        if record is None:
+            raise ValueError(
+                "Moderation record not found."
+            )
+
+        return record
+
+    def _require_report(
+        self,
+        report_id: str,
+    ) -> ModerationReport:
+        """Return a report or raise an error."""
+
+        report = self.get_report(report_id)
+
+        if report is None:
+            raise ValueError(
+                "Moderation report not found."
+            )
+
+        return report
+
+    @staticmethod
+    def _require_reviewer(
+        reviewer_id: str,
+        record: ModerationRecord,
+    ) -> None:
+        """Validate the reviewer for a moderation action."""
+
+        if not reviewer_id:
+            raise ValueError("reviewer_id is required")
+
+        if record.reviewer_id != reviewer_id:
+            raise ValueError(
+                "Reviewer is not assigned to this moderation case."
+            )
+
 
 __all__ = [
-    "MuktiMahalModerationService",
+    "ModerationStatus",
+    "ModerationReason",
+    "ModerationRecord",
+    "ModerationReport",
+    "ModerationPolicy",
+    "MuktiMahalModeration",
 ]
