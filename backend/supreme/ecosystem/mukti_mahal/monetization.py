@@ -1,27 +1,21 @@
 """
 MAIN BASE FOUNDATION
 
-SUPREME — Mukti Mahal Monetization Service
+SUPREME — Mukti Mahal Monetization
 
-Central monetization layer for:
+Monetization and commerce layer for the Mukti Mahal ecosystem.
 
-- Free content
-- Paid content
-- Subscriptions
-- Creator monetization
-- Payment-provider references
-- Revenue records
-- Refund references
-- Monetization status
+Handles:
+- monetization plans
+- subscriptions
+- orders
+- transactions
+- refunds
+- payment-provider references
+- commerce status
 
-Security principles:
-- Never store raw card information.
-- Never store CVV.
-- Never store payment passwords.
-- Never store raw payment tokens.
-- Payment processing remains with authorized providers.
-- Only secure payment references are stored.
-- Revenue records contain business metadata, not secrets.
+Sensitive payment credentials, card numbers, bank details, OTPs,
+passwords, API keys and payment secrets must never be stored here.
 """
 
 from __future__ import annotations
@@ -32,717 +26,754 @@ from enum import Enum
 from typing import Dict, List, Optional
 
 
-# =========================================================
-# 🕐 TIME
-# =========================================================
+def _utc_now() -> datetime:
+    """Return the current UTC timestamp."""
+    return datetime.now(timezone.utc)
 
 
-def utc_now() -> str:
-    """Return an ISO-8601 UTC timestamp."""
-
-    return datetime.now(
-        timezone.utc
-    ).isoformat()
-
-
-# =========================================================
-# 💰 MONETIZATION TYPE
-# =========================================================
-
-
-class MuktiMahalMonetizationType(str, Enum):
-    """Supported monetization models."""
-
-    FREE = "FREE"
-    ONE_TIME = "ONE_TIME"
-    SUBSCRIPTION = "SUBSCRIPTION"
-    TIP = "TIP"
-    MEMBERSHIP = "MEMBERSHIP"
-    LICENSING = "LICENSING"
-    AFFILIATE = "AFFILIATE"
-
-
-# =========================================================
-# 📊 MONETIZATION STATUS
-# =========================================================
-
-
-class MuktiMahalMonetizationStatus(str, Enum):
-    """Monetization lifecycle."""
+class PlanStatus(str, Enum):
+    """Monetization plan states."""
 
     DRAFT = "DRAFT"
     ACTIVE = "ACTIVE"
-    PAUSED = "PAUSED"
-    DISABLED = "DISABLED"
+    INACTIVE = "INACTIVE"
+    ARCHIVED = "ARCHIVED"
 
 
-# =========================================================
-# 💳 PAYMENT STATUS
-# =========================================================
-
-
-class MuktiMahalPaymentStatus(str, Enum):
-    """Payment lifecycle."""
+class SubscriptionStatus(str, Enum):
+    """Subscription lifecycle states."""
 
     PENDING = "PENDING"
-    AUTHORIZED = "AUTHORIZED"
-    COMPLETED = "COMPLETED"
+    ACTIVE = "ACTIVE"
+    PAUSED = "PAUSED"
+    CANCELLED = "CANCELLED"
+    EXPIRED = "EXPIRED"
+
+
+class TransactionStatus(str, Enum):
+    """Transaction lifecycle states."""
+
+    CREATED = "CREATED"
+    PENDING = "PENDING"
+    PROCESSING = "PROCESSING"
+    SUCCESS = "SUCCESS"
     FAILED = "FAILED"
-    REFUNDED = "REFUNDED"
     CANCELLED = "CANCELLED"
 
 
-# =========================================================
-# 💵 PRICING REFERENCE
-# =========================================================
+class RefundStatus(str, Enum):
+    """Refund lifecycle states."""
+
+    REQUESTED = "REQUESTED"
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    REJECTED = "REJECTED"
+
+
+class PaymentType(str, Enum):
+    """Commerce transaction types."""
+
+    SUBSCRIPTION = "SUBSCRIPTION"
+    PURCHASE = "PURCHASE"
+    TIP = "TIP"
+    REFUND = "REFUND"
 
 
 @dataclass
-class MuktiMahalPricing:
-    """
-    Safe pricing configuration.
+class MonetizationPlan:
+    """Represents a purchasable monetization plan."""
 
-    No payment credentials are stored here.
-    """
-
-    pricing_id: str
-
-    creator_id: str
-
-    monetization_type: MuktiMahalMonetizationType
-
+    plan_id: str
+    name: str
+    amount: float
     currency: str = "INR"
 
-    amount: int = 0
+    description: str = ""
+    status: PlanStatus = PlanStatus.DRAFT
 
-    interval: Optional[str] = None
+    billing_interval: str = "ONE_TIME"
 
-    active: bool = True
-
-    metadata: Dict[str, str] = field(
-        default_factory=dict
-    )
-
-    created_at: str = field(
-        default_factory=utc_now
-    )
-
-    updated_at: str = field(
-        default_factory=utc_now
-    )
+    created_at: datetime = field(default_factory=_utc_now)
+    updated_at: datetime = field(default_factory=_utc_now)
 
     def __post_init__(self) -> None:
+        if not self.plan_id:
+            raise ValueError("plan_id is required")
 
-        if not self.pricing_id.strip():
+        if not self.name:
+            raise ValueError("name is required")
+
+        if self.amount < 0:
+            raise ValueError("amount cannot be negative")
+
+        if not self.currency:
+            raise ValueError("currency is required")
+
+        if not self.billing_interval:
             raise ValueError(
-                "pricing_id cannot be empty."
+                "billing_interval is required"
             )
 
-        if not self.creator_id.strip():
+
+@dataclass
+class Subscription:
+    """Represents a user subscription."""
+
+    subscription_id: str
+    subscriber_id: str
+    plan_id: str
+
+    status: SubscriptionStatus = SubscriptionStatus.PENDING
+
+    provider: Optional[str] = None
+    external_reference: Optional[str] = None
+
+    started_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
+    cancelled_at: Optional[datetime] = None
+
+    created_at: datetime = field(default_factory=_utc_now)
+    updated_at: datetime = field(default_factory=_utc_now)
+
+    def __post_init__(self) -> None:
+        if not self.subscription_id:
             raise ValueError(
-                "creator_id cannot be empty."
+                "subscription_id is required"
             )
 
-        if not self.currency.strip():
+        if not self.subscriber_id:
             raise ValueError(
-                "currency cannot be empty."
+                "subscriber_id is required"
+            )
+
+        if not self.plan_id:
+            raise ValueError(
+                "plan_id is required"
+            )
+
+
+@dataclass
+class Transaction:
+    """Represents a commerce transaction."""
+
+    transaction_id: str
+    payer_id: str
+    amount: float
+    currency: str = "INR"
+
+    payment_type: PaymentType = PaymentType.PURCHASE
+    status: TransactionStatus = TransactionStatus.CREATED
+
+    plan_id: Optional[str] = None
+    subscription_id: Optional[str] = None
+
+    provider: Optional[str] = None
+    external_reference: Optional[str] = None
+
+    failure_reason: str = ""
+
+    created_at: datetime = field(default_factory=_utc_now)
+    updated_at: datetime = field(default_factory=_utc_now)
+
+    def __post_init__(self) -> None:
+        if not self.transaction_id:
+            raise ValueError(
+                "transaction_id is required"
+            )
+
+        if not self.payer_id:
+            raise ValueError(
+                "payer_id is required"
             )
 
         if self.amount < 0:
             raise ValueError(
-                "amount cannot be negative."
+                "amount cannot be negative"
             )
 
-
-# =========================================================
-# 💳 PAYMENT PROVIDER REFERENCE
-# =========================================================
+        if not self.currency:
+            raise ValueError(
+                "currency is required"
+            )
 
 
 @dataclass
-class MuktiMahalPaymentProviderReference:
-    """
-    Reference to an authorized payment provider.
+class Refund:
+    """Represents a refund request."""
 
-    Raw payment credentials are never stored.
-    """
+    refund_id: str
+    transaction_id: str
+    amount: float
 
-    reference_id: str
+    status: RefundStatus = RefundStatus.REQUESTED
 
-    provider: str
+    reason: str = ""
+    provider: Optional[str] = None
+    external_reference: Optional[str] = None
 
-    account_reference: str = ""
-
-    external_customer_reference: Optional[
-        str
-    ] = None
-
-    active: bool = True
-
-    metadata: Dict[str, str] = field(
-        default_factory=dict
-    )
-
-    created_at: str = field(
-        default_factory=utc_now
-    )
-
-    updated_at: str = field(
-        default_factory=utc_now
-    )
+    created_at: datetime = field(default_factory=_utc_now)
+    updated_at: datetime = field(default_factory=_utc_now)
 
     def __post_init__(self) -> None:
-
-        if not self.reference_id.strip():
+        if not self.refund_id:
             raise ValueError(
-                "reference_id cannot be empty."
+                "refund_id is required"
             )
 
-        if not self.provider.strip():
+        if not self.transaction_id:
             raise ValueError(
-                "provider cannot be empty."
+                "transaction_id is required"
             )
 
-
-# =========================================================
-# 🔗 MONETIZATION CONFIGURATION
-# =========================================================
-
-
-@dataclass
-class MuktiMahalMonetizationConfig:
-    """Creator monetization configuration."""
-
-    monetization_id: str
-
-    creator_id: str
-
-    monetization_type: MuktiMahalMonetizationType
-
-    pricing_id: Optional[str] = None
-
-    payment_provider_reference_id: Optional[
-        str
-    ] = None
-
-    status: MuktiMahalMonetizationStatus = (
-        MuktiMahalMonetizationStatus.DRAFT
-    )
-
-    metadata: Dict[str, str] = field(
-        default_factory=dict
-    )
-
-    created_at: str = field(
-        default_factory=utc_now
-    )
-
-    updated_at: str = field(
-        default_factory=utc_now
-    )
-
-    def __post_init__(self) -> None:
-
-        if not self.monetization_id.strip():
+        if self.amount <= 0:
             raise ValueError(
-                "monetization_id cannot be empty."
-            )
-
-        if not self.creator_id.strip():
-            raise ValueError(
-                "creator_id cannot be empty."
+                "refund amount must be greater than zero"
             )
 
 
-# =========================================================
-# 🧾 PAYMENT RECORD
-# =========================================================
-
-
-@dataclass
-class MuktiMahalPaymentRecord:
-    """
-    Business-level payment record.
-
-    Only provider references are stored.
-    """
-
-    payment_id: str
-
-    buyer_id: str
-
-    creator_id: str
-
-    payment_provider: str
-
-    amount: int
-
-    currency: str
-
-    status: MuktiMahalPaymentStatus = (
-        MuktiMahalPaymentStatus.PENDING
-    )
-
-    external_payment_reference: Optional[
-        str
-    ] = None
-
-    content_reference: Optional[str] = None
-
-    subscription_reference: Optional[str] = None
-
-    created_at: str = field(
-        default_factory=utc_now
-    )
-
-    updated_at: str = field(
-        default_factory=utc_now
-    )
-
-    def __post_init__(self) -> None:
-
-        if not self.payment_id.strip():
-            raise ValueError(
-                "payment_id cannot be empty."
-            )
-
-        if not self.buyer_id.strip():
-            raise ValueError(
-                "buyer_id cannot be empty."
-            )
-
-        if not self.creator_id.strip():
-            raise ValueError(
-                "creator_id cannot be empty."
-            )
-
-        if not self.payment_provider.strip():
-            raise ValueError(
-                "payment_provider cannot be empty."
-            )
-
-        if self.amount < 0:
-            raise ValueError(
-                "amount cannot be negative."
-            )
-
-
-# =========================================================
-# 📈 REVENUE RECORD
-# =========================================================
-
-
-@dataclass
-class MuktiMahalRevenueRecord:
-    """Creator revenue record."""
-
-    revenue_id: str
-
-    creator_id: str
-
-    payment_id: str
-
-    gross_amount: int
-
-    platform_fee: int = 0
-
-    net_amount: int = 0
-
-    currency: str = "INR"
-
-    created_at: str = field(
-        default_factory=utc_now
-    )
-
-    def __post_init__(self) -> None:
-
-        if not self.revenue_id.strip():
-            raise ValueError(
-                "revenue_id cannot be empty."
-            )
-
-        if not self.creator_id.strip():
-            raise ValueError(
-                "creator_id cannot be empty."
-            )
-
-        if not self.payment_id.strip():
-            raise ValueError(
-                "payment_id cannot be empty."
-            )
-
-        if self.gross_amount < 0:
-            raise ValueError(
-                "gross_amount cannot be negative."
-            )
-
-        if self.platform_fee < 0:
-            raise ValueError(
-                "platform_fee cannot be negative."
-            )
-
-        if self.net_amount == 0:
-            self.net_amount = (
-                self.gross_amount
-                - self.platform_fee
-            )
-
-        if self.net_amount < 0:
-            raise ValueError(
-                "net_amount cannot be negative."
-            )
-
-
-# =========================================================
-# 💰 MONETIZATION SERVICE
-# =========================================================
-
-
-class MuktiMahalMonetizationService:
+class MuktiMahalMonetization:
     """Central monetization service."""
 
     def __init__(self) -> None:
-
-        self._initialized = False
-
-        self._pricing: Dict[
-            str,
-            MuktiMahalPricing,
-        ] = {}
-
-        self._providers: Dict[
-            str,
-            MuktiMahalPaymentProviderReference,
-        ] = {}
-
-        self._configs: Dict[
-            str,
-            MuktiMahalMonetizationConfig,
-        ] = {}
-
-        self._payments: Dict[
-            str,
-            MuktiMahalPaymentRecord,
-        ] = {}
-
-        self._revenue: Dict[
-            str,
-            MuktiMahalRevenueRecord,
-        ] = {}
+        self._plans: Dict[str, MonetizationPlan] = {}
+        self._subscriptions: Dict[str, Subscription] = {}
+        self._transactions: Dict[str, Transaction] = {}
+        self._refunds: Dict[str, Refund] = {}
 
     # =========================================================
-    # 🚀 INITIALIZE
+    # PLANS
     # =========================================================
 
-    def initialize(self) -> dict:
-        """Initialize monetization."""
-
-        self._initialized = True
-
-        return {
-            "service": (
-                "SUPREME_MUKTI_MAHAL_MONETIZATION"
-            ),
-            "status": "READY",
-            "initialized": True,
-            "raw_payment_credentials_stored": False,
-        }
-
-    # =========================================================
-    # 💵 PRICING
-    # =========================================================
-
-    def create_pricing(
+    def create_plan(
         self,
-        pricing: MuktiMahalPricing,
-    ) -> MuktiMahalPricing:
-        """Create pricing configuration."""
+        plan: MonetizationPlan,
+    ) -> MonetizationPlan:
+        """Create a monetization plan."""
 
-        if pricing.pricing_id in self._pricing:
+        if plan.plan_id in self._plans:
             raise ValueError(
-                "Pricing already exists."
+                "Monetization plan already exists."
             )
 
-        self._pricing[
-            pricing.pricing_id
-        ] = pricing
+        self._plans[plan.plan_id] = plan
 
-        return pricing
+        return plan
 
-    def get_pricing(
+    def get_plan(
         self,
-        pricing_id: str,
-    ) -> Optional[MuktiMahalPricing]:
-        """Return pricing configuration."""
+        plan_id: str,
+    ) -> Optional[MonetizationPlan]:
+        """Get a monetization plan."""
 
-        return self._pricing.get(
-            pricing_id
+        return self._plans.get(plan_id)
+
+    def list_plans(
+        self,
+        status: Optional[PlanStatus] = None,
+    ) -> List[MonetizationPlan]:
+        """List plans with an optional status filter."""
+
+        plans = list(self._plans.values())
+
+        if status is not None:
+            plans = [
+                plan
+                for plan in plans
+                if plan.status == status
+            ]
+
+        return plans
+
+    def activate_plan(
+        self,
+        plan_id: str,
+    ) -> MonetizationPlan:
+        """Activate a monetization plan."""
+
+        plan = self._require_plan(plan_id)
+
+        plan.status = PlanStatus.ACTIVE
+        plan.updated_at = _utc_now()
+
+        return plan
+
+    def deactivate_plan(
+        self,
+        plan_id: str,
+    ) -> MonetizationPlan:
+        """Deactivate a monetization plan."""
+
+        plan = self._require_plan(plan_id)
+
+        plan.status = PlanStatus.INACTIVE
+        plan.updated_at = _utc_now()
+
+        return plan
+
+    # =========================================================
+    # SUBSCRIPTIONS
+    # =========================================================
+
+    def create_subscription(
+        self,
+        subscription: Subscription,
+    ) -> Subscription:
+        """Create a subscription."""
+
+        if subscription.subscription_id in self._subscriptions:
+            raise ValueError(
+                "Subscription already exists."
+            )
+
+        plan = self.get_plan(subscription.plan_id)
+
+        if plan is None:
+            raise ValueError(
+                "Monetization plan not found."
+            )
+
+        if plan.status != PlanStatus.ACTIVE:
+            raise ValueError(
+                "Monetization plan is not active."
+            )
+
+        self._subscriptions[
+            subscription.subscription_id
+        ] = subscription
+
+        return subscription
+
+    def get_subscription(
+        self,
+        subscription_id: str,
+    ) -> Optional[Subscription]:
+        """Get a subscription."""
+
+        return self._subscriptions.get(
+            subscription_id
         )
 
-    # =========================================================
-    # 💳 PAYMENT PROVIDER
-    # =========================================================
-
-    def register_payment_provider(
+    def list_subscriptions(
         self,
-        reference: MuktiMahalPaymentProviderReference,
-    ) -> MuktiMahalPaymentProviderReference:
-        """Register an authorized payment provider reference."""
+        subscriber_id: Optional[str] = None,
+        status: Optional[SubscriptionStatus] = None,
+    ) -> List[Subscription]:
+        """List subscriptions with optional filters."""
 
-        if reference.reference_id in (
-            self._providers
-        ):
+        subscriptions = list(
+            self._subscriptions.values()
+        )
+
+        if subscriber_id is not None:
+            subscriptions = [
+                subscription
+                for subscription in subscriptions
+                if subscription.subscriber_id
+                == subscriber_id
+            ]
+
+        if status is not None:
+            subscriptions = [
+                subscription
+                for subscription in subscriptions
+                if subscription.status == status
+            ]
+
+        return subscriptions
+
+    def activate_subscription(
+        self,
+        subscription_id: str,
+        expires_at: Optional[datetime] = None,
+    ) -> Subscription:
+        """Activate a subscription."""
+
+        subscription = self._require_subscription(
+            subscription_id
+        )
+
+        subscription.status = SubscriptionStatus.ACTIVE
+        subscription.started_at = (
+            subscription.started_at
+            or _utc_now()
+        )
+        subscription.expires_at = expires_at
+        subscription.updated_at = _utc_now()
+
+        return subscription
+
+    def pause_subscription(
+        self,
+        subscription_id: str,
+    ) -> Subscription:
+        """Pause a subscription."""
+
+        subscription = self._require_subscription(
+            subscription_id
+        )
+
+        if subscription.status != SubscriptionStatus.ACTIVE:
             raise ValueError(
-                "Payment provider reference already exists."
+                "Only active subscriptions can be paused."
             )
 
-        self._providers[
-            reference.reference_id
-        ] = reference
+        subscription.status = SubscriptionStatus.PAUSED
+        subscription.updated_at = _utc_now()
 
-        return reference
+        return subscription
 
-    # =========================================================
-    # 🔗 MONETIZATION CONFIG
-    # =========================================================
-
-    def create_configuration(
+    def cancel_subscription(
         self,
-        config: MuktiMahalMonetizationConfig,
-    ) -> MuktiMahalMonetizationConfig:
-        """Create creator monetization configuration."""
+        subscription_id: str,
+    ) -> Subscription:
+        """Cancel a subscription."""
 
-        if config.monetization_id in (
-            self._configs
-        ):
+        subscription = self._require_subscription(
+            subscription_id
+        )
+
+        subscription.status = SubscriptionStatus.CANCELLED
+        subscription.cancelled_at = _utc_now()
+        subscription.updated_at = _utc_now()
+
+        return subscription
+
+    # =========================================================
+    # TRANSACTIONS
+    # =========================================================
+
+    def create_transaction(
+        self,
+        transaction: Transaction,
+    ) -> Transaction:
+        """Create a commerce transaction."""
+
+        if transaction.transaction_id in self._transactions:
             raise ValueError(
-                "Monetization configuration already exists."
+                "Transaction already exists."
             )
 
-        if config.pricing_id is not None:
-            if config.pricing_id not in (
-                self._pricing
-            ):
+        if transaction.plan_id is not None:
+            plan = self.get_plan(
+                transaction.plan_id
+            )
+
+            if plan is None:
                 raise ValueError(
-                    "Pricing reference does not exist."
+                    "Monetization plan not found."
                 )
 
-        if (
-            config.payment_provider_reference_id
-            is not None
-        ):
-            if (
-                config.payment_provider_reference_id
-                not in self._providers
-            ):
-                raise ValueError(
-                    "Payment provider reference does not exist."
-                )
+        self._transactions[
+            transaction.transaction_id
+        ] = transaction
 
-        self._configs[
-            config.monetization_id
-        ] = config
+        return transaction
 
-        return config
-
-    # =========================================================
-    # ▶️ ACTIVATE
-    # =========================================================
-
-    def activate(
+    def get_transaction(
         self,
-        monetization_id: str,
-    ) -> MuktiMahalMonetizationConfig:
-        """Activate a monetization configuration."""
+        transaction_id: str,
+    ) -> Optional[Transaction]:
+        """Get a transaction."""
 
-        config = self._configs.get(
-            monetization_id
+        return self._transactions.get(
+            transaction_id
         )
 
-        if config is None:
+    def list_transactions(
+        self,
+        payer_id: Optional[str] = None,
+        status: Optional[TransactionStatus] = None,
+    ) -> List[Transaction]:
+        """List transactions with optional filters."""
+
+        transactions = list(
+            self._transactions.values()
+        )
+
+        if payer_id is not None:
+            transactions = [
+                transaction
+                for transaction in transactions
+                if transaction.payer_id == payer_id
+            ]
+
+        if status is not None:
+            transactions = [
+                transaction
+                for transaction in transactions
+                if transaction.status == status
+            ]
+
+        return transactions
+
+    def mark_transaction_pending(
+        self,
+        transaction_id: str,
+    ) -> Transaction:
+        """Move a transaction to pending."""
+
+        transaction = self._require_transaction(
+            transaction_id
+        )
+
+        transaction.status = TransactionStatus.PENDING
+        transaction.updated_at = _utc_now()
+
+        return transaction
+
+    def mark_transaction_processing(
+        self,
+        transaction_id: str,
+    ) -> Transaction:
+        """Move a transaction to processing."""
+
+        transaction = self._require_transaction(
+            transaction_id
+        )
+
+        transaction.status = TransactionStatus.PROCESSING
+        transaction.updated_at = _utc_now()
+
+        return transaction
+
+    def mark_transaction_success(
+        self,
+        transaction_id: str,
+    ) -> Transaction:
+        """Mark a transaction successful."""
+
+        transaction = self._require_transaction(
+            transaction_id
+        )
+
+        transaction.status = TransactionStatus.SUCCESS
+        transaction.updated_at = _utc_now()
+
+        return transaction
+
+    def mark_transaction_failed(
+        self,
+        transaction_id: str,
+        reason: str = "",
+    ) -> Transaction:
+        """Mark a transaction failed."""
+
+        transaction = self._require_transaction(
+            transaction_id
+        )
+
+        transaction.status = TransactionStatus.FAILED
+        transaction.failure_reason = reason
+        transaction.updated_at = _utc_now()
+
+        return transaction
+
+    # =========================================================
+    # REFUNDS
+    # =========================================================
+
+    def create_refund(
+        self,
+        refund: Refund,
+    ) -> Refund:
+        """Create a refund request."""
+
+        if refund.refund_id in self._refunds:
             raise ValueError(
-                "Monetization configuration does not exist."
+                "Refund already exists."
             )
 
-        if (
-            config.monetization_type
-            != MuktiMahalMonetizationType.FREE
-            and config.pricing_id is None
-        ):
+        transaction = self.get_transaction(
+            refund.transaction_id
+        )
+
+        if transaction is None:
             raise ValueError(
-                "Paid monetization requires pricing."
+                "Transaction not found."
             )
 
-        config.status = (
-            MuktiMahalMonetizationStatus.ACTIVE
-        )
-
-        return config
-
-    # =========================================================
-    # ⏸️ PAUSE
-    # =========================================================
-
-    def pause(
-        self,
-        monetization_id: str,
-    ) -> MuktiMahalMonetizationConfig:
-        """Pause monetization."""
-
-        config = self._configs.get(
-            monetization_id
-        )
-
-        if config is None:
+        if transaction.status != TransactionStatus.SUCCESS:
             raise ValueError(
-                "Monetization configuration does not exist."
+                "Only successful transactions can be refunded."
             )
 
-        config.status = (
-            MuktiMahalMonetizationStatus.PAUSED
-        )
-
-        return config
-
-    # =========================================================
-    # 🧾 RECORD PAYMENT
-    # =========================================================
-
-    def record_payment(
-        self,
-        payment: MuktiMahalPaymentRecord,
-    ) -> MuktiMahalPaymentRecord:
-        """Record a provider payment result."""
-
-        if payment.payment_id in self._payments:
+        if refund.amount > transaction.amount:
             raise ValueError(
-                "Payment already exists."
+                "Refund amount cannot exceed transaction amount."
             )
 
-        self._payments[
-            payment.payment_id
-        ] = payment
+        self._refunds[
+            refund.refund_id
+        ] = refund
 
-        return payment
+        return refund
 
-    # =========================================================
-    # 📈 RECORD REVENUE
-    # =========================================================
-
-    def record_revenue(
+    def get_refund(
         self,
-        revenue: MuktiMahalRevenueRecord,
-    ) -> MuktiMahalRevenueRecord:
-        """Record creator revenue."""
+        refund_id: str,
+    ) -> Optional[Refund]:
+        """Get a refund."""
 
-        if revenue.revenue_id in self._revenue:
-            raise ValueError(
-                "Revenue record already exists."
-            )
+        return self._refunds.get(refund_id)
 
-        payment = self._payments.get(
-            revenue.payment_id
+    def list_refunds(
+        self,
+        transaction_id: Optional[str] = None,
+        status: Optional[RefundStatus] = None,
+    ) -> List[Refund]:
+        """List refunds with optional filters."""
+
+        refunds = list(
+            self._refunds.values()
         )
 
-        if payment is None:
-            raise ValueError(
-                "Payment record does not exist."
-            )
+        if transaction_id is not None:
+            refunds = [
+                refund
+                for refund in refunds
+                if refund.transaction_id
+                == transaction_id
+            ]
 
-        if payment.status != (
-            MuktiMahalPaymentStatus.COMPLETED
-        ):
-            raise ValueError(
-                "Revenue can only be recorded for completed payments."
-            )
+        if status is not None:
+            refunds = [
+                refund
+                for refund in refunds
+                if refund.status == status
+            ]
 
-        self._revenue[
-            revenue.revenue_id
-        ] = revenue
+        return refunds
 
-        return revenue
-
-    # =========================================================
-    # 📊 CREATOR REVENUE
-    # =========================================================
-
-    def creator_revenue(
+    def complete_refund(
         self,
-        creator_id: str,
-    ) -> int:
-        """Return total recorded net revenue."""
+        refund_id: str,
+    ) -> Refund:
+        """Complete a refund."""
 
-        return sum(
-            record.net_amount
-            for record in self._revenue.values()
-            if record.creator_id == creator_id
+        refund = self._require_refund(
+            refund_id
         )
 
-    # =========================================================
-    # 📋 GETTERS
-    # =========================================================
+        refund.status = RefundStatus.COMPLETED
+        refund.updated_at = _utc_now()
 
-    def get_payment(
+        return refund
+
+    def reject_refund(
         self,
-        payment_id: str,
-    ) -> Optional[MuktiMahalPaymentRecord]:
-        """Return a payment record."""
+        refund_id: str,
+        reason: str = "",
+    ) -> Refund:
+        """Reject a refund."""
 
-        return self._payments.get(
-            payment_id
+        refund = self._require_refund(
+            refund_id
         )
 
-    def get_configuration(
-        self,
-        monetization_id: str,
-    ) -> Optional[
-        MuktiMahalMonetizationConfig
-    ]:
-        """Return monetization configuration."""
+        refund.status = RefundStatus.REJECTED
+        refund.reason = reason
+        refund.updated_at = _utc_now()
 
-        return self._configs.get(
-            monetization_id
-        )
+        return refund
 
     # =========================================================
-    # 📊 STATUS
+    # STATUS
     # =========================================================
 
     def status(self) -> dict:
-        """Return safe monetization status."""
+        """Return safe monetization runtime status."""
 
         return {
-            "service": (
-                "SUPREME_MUKTI_MAHAL_MONETIZATION"
+            "service": "MUKTI_MAHAL_MONETIZATION",
+            "plans": len(self._plans),
+            "subscriptions": len(
+                self._subscriptions
             ),
-            "initialized": self._initialized,
-            "pricing_count": len(
-                self._pricing
+            "transactions": len(
+                self._transactions
             ),
-            "payment_provider_count": len(
-                self._providers
-            ),
-            "configuration_count": len(
-                self._configs
-            ),
-            "payment_count": len(
-                self._payments
-            ),
-            "revenue_count": len(
-                self._revenue
-            ),
-            "raw_payment_credentials_stored": False,
+            "refunds": len(self._refunds),
         }
+
+    # =========================================================
+    # INTERNAL HELPERS
+    # =========================================================
+
+    def _require_plan(
+        self,
+        plan_id: str,
+    ) -> MonetizationPlan:
+        """Return a plan or raise an error."""
+
+        plan = self.get_plan(plan_id)
+
+        if plan is None:
+            raise ValueError(
+                "Monetization plan not found."
+            )
+
+        return plan
+
+    def _require_subscription(
+        self,
+        subscription_id: str,
+    ) -> Subscription:
+        """Return a subscription or raise an error."""
+
+        subscription = self.get_subscription(
+            subscription_id
+        )
+
+        if subscription is None:
+            raise ValueError(
+                "Subscription not found."
+            )
+
+        return subscription
+
+    def _require_transaction(
+        self,
+        transaction_id: str,
+    ) -> Transaction:
+        """Return a transaction or raise an error."""
+
+        transaction = self.get_transaction(
+            transaction_id
+        )
+
+        if transaction is None:
+            raise ValueError(
+                "Transaction not found."
+            )
+
+        return transaction
+
+    def _require_refund(
+        self,
+        refund_id: str,
+    ) -> Refund:
+        """Return a refund or raise an error."""
+
+        refund = self.get_refund(refund_id)
+
+        if refund is None:
+            raise ValueError(
+                "Refund not found."
+            )
+
+        return refund
 
 
 __all__ = [
-    "MuktiMahalMonetizationType",
-    "MuktiMahalMonetizationStatus",
-    "MuktiMahalPaymentStatus",
-    "MuktiMahalPricing",
-    "MuktiMahalPaymentProviderReference",
-    "MuktiMahalMonetizationConfig",
-    "MuktiMahalPaymentRecord",
-    "MuktiMahalRevenueRecord",
-    "MuktiMahalMonetizationService",
+    "PlanStatus",
+    "SubscriptionStatus",
+    "TransactionStatus",
+    "RefundStatus",
+    "PaymentType",
+    "MonetizationPlan",
+    "Subscription",
+    "Transaction",
+    "Refund",
+    "MuktiMahalMonetization",
 ]
