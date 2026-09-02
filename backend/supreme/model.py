@@ -172,10 +172,10 @@ class SupremeOwner:
 
     dashboard_theme: str = "SUPREME"
 
-# Profile Privacy    
-profile_visibility:    SupremeProfileVisibility = (
-    SupremeProfileVisibility.OWNER_ONLY
-)
+    # Profile Privacy
+    profile_visibility: SupremeProfileVisibility = (
+        SupremeProfileVisibility.OWNER_ONLY
+    )
 
     # System
     system_version: str = "1.0.0"
