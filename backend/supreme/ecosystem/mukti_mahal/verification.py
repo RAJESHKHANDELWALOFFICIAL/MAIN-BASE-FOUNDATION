@@ -1,412 +1,453 @@
 """
 MAIN BASE FOUNDATION
 
-SUPREME — Mukti Mahal Verification Service
+SUPREME — Mukti Mahal Verification
 
-Central verification orchestration for:
+Verification and eligibility layer for the Mukti Mahal ecosystem.
 
-- Adult eligibility
-- Identity verification
-- Consent verification
-- Creator eligibility
-- Couple eligibility
+Handles:
+- identity verification state
+- age verification state
+- consent verification state
+- rights/ownership verification state
+- verification review workflow
 
-Security principles:
-- Verification providers handle sensitive source data.
-- This service stores references and statuses only.
-- No identity documents are stored here.
-- No passwords or OTPs are stored here.
-- Adult eligibility is separate from authorization.
-- Every couple member is verified independently.
+Sensitive identity documents, passwords, OTPs, biometric data and
+payment credentials must never be stored directly in this module.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
 from typing import Dict, List, Optional
 
-from .model import (
-    MuktiMahalAdultVerification,
-    MuktiMahalConsentRecord,
-    MuktiMahalConsentStatus,
-    MuktiMahalIdentityVerification,
-    MuktiMahalVerificationStatus,
-)
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 
-class MuktiMahalVerificationService:
-    """Central verification service for Mukti Mahal."""
+class VerificationStatus(str, Enum):
+    """Verification lifecycle states."""
 
-    def __init__(self) -> None:
-        self._initialized = False
+    NOT_STARTED = "NOT_STARTED"
+    PENDING = "PENDING"
+    UNDER_REVIEW = "UNDER_REVIEW"
+    VERIFIED = "VERIFIED"
+    REJECTED = "REJECTED"
+    EXPIRED = "EXPIRED"
 
-        self._adult_verifications: Dict[
-            str,
-            MuktiMahalAdultVerification,
-        ] = {}
 
-        self._identity_verifications: Dict[
-            str,
-            MuktiMahalIdentityVerification,
-        ] = {}
+class VerificationType(str, Enum):
+    """Supported verification categories."""
 
-        self._consents: Dict[
-            str,
-            MuktiMahalConsentRecord,
-        ] = {}
+    IDENTITY = "IDENTITY"
+    AGE = "AGE"
+    CONSENT = "CONSENT"
+    RIGHTS = "RIGHTS"
 
-    # =========================================================
-    # 🚀 INITIALIZE
-    # =========================================================
 
-    def initialize(self) -> dict:
-        """Initialize verification services."""
+class VerificationReason(str, Enum):
+    """Standard verification decision reasons."""
 
-        self._initialized = True
+    DOCUMENT_REQUIRED = "DOCUMENT_REQUIRED"
+    INFORMATION_MISMATCH = "INFORMATION_MISMATCH"
+    AGE_REQUIREMENT = "AGE_REQUIREMENT"
+    CONSENT_REQUIRED = "CONSENT_REQUIRED"
+    RIGHTS_REQUIRED = "RIGHTS_REQUIRED"
+    POLICY = "POLICY"
+    OTHER = "OTHER"
 
-        return {
-            "service": (
-                "SUPREME_MUKTI_MAHAL_VERIFICATION"
-            ),
-            "status": "READY",
-            "initialized": True,
-            "raw_documents_stored": False,
-            "raw_otp_stored": False,
-        }
 
-    # =========================================================
-    # 🔞 ADULT VERIFICATION
-    # =========================================================
+@dataclass
+class VerificationRecord:
+    """Represents one verification case."""
 
-    def register_adult_verification(
+    verification_id: str
+    subject_id: str
+    verification_type: VerificationType
+
+    status: VerificationStatus = VerificationStatus.NOT_STARTED
+
+    provider: Optional[str] = None
+    external_reference: Optional[str] = None
+
+    reviewer_id: Optional[str] = None
+    reason: Optional[VerificationReason] = None
+    review_note: str = ""
+
+    verified_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
+
+    created_at: datetime = field(default_factory=_utc_now)
+    updated_at: datetime = field(default_factory=_utc_now)
+
+    def __post_init__(self) -> None:
+        if not self.verification_id:
+            raise ValueError("verification_id is required")
+
+        if not self.subject_id:
+            raise ValueError("subject_id is required")
+
+
+@dataclass
+class VerificationPolicy:
+    """Platform verification requirements."""
+
+    identity_required: bool = True
+    age_verification_required: bool = True
+    consent_verification_required: bool = True
+    rights_verification_required: bool = True
+
+
+class MuktiMahalVerification:
+    """Central verification service."""
+
+    def __init__(
         self,
-        verification: MuktiMahalAdultVerification,
-    ) -> MuktiMahalAdultVerification:
-        """Register an adult-verification reference."""
+        policy: Optional[VerificationPolicy] = None,
+    ) -> None:
+        self.policy = policy or VerificationPolicy()
+        self._records: Dict[str, VerificationRecord] = {}
 
-        if (
-            verification.verification_id
-            in self._adult_verifications
-        ):
+    # =========================================================
+    # RECORD MANAGEMENT
+    # =========================================================
+
+    def create_verification(
+        self,
+        record: VerificationRecord,
+    ) -> VerificationRecord:
+        """Create a verification case."""
+
+        if record.verification_id in self._records:
             raise ValueError(
-                "Adult verification already exists."
+                "Verification record already exists."
             )
 
-        self._adult_verifications[
-            verification.verification_id
-        ] = verification
+        self._records[record.verification_id] = record
 
-        return verification
+        return record
 
-    def get_adult_verification(
+    def get_verification(
         self,
         verification_id: str,
-    ) -> Optional[MuktiMahalAdultVerification]:
-        """Return an adult-verification record."""
+    ) -> Optional[VerificationRecord]:
+        """Get a verification record."""
 
-        return self._adult_verifications.get(
+        return self._records.get(verification_id)
+
+    def list_verifications(
+        self,
+        subject_id: Optional[str] = None,
+        verification_type: Optional[VerificationType] = None,
+        status: Optional[VerificationStatus] = None,
+    ) -> List[VerificationRecord]:
+        """List verification records with optional filters."""
+
+        records = list(self._records.values())
+
+        if subject_id is not None:
+            records = [
+                record
+                for record in records
+                if record.subject_id == subject_id
+            ]
+
+        if verification_type is not None:
+            records = [
+                record
+                for record in records
+                if record.verification_type == verification_type
+            ]
+
+        if status is not None:
+            records = [
+                record
+                for record in records
+                if record.status == status
+            ]
+
+        return records
+
+    # =========================================================
+    # WORKFLOW
+    # =========================================================
+
+    def start_verification(
+        self,
+        verification_id: str,
+    ) -> VerificationRecord:
+        """Start a verification process."""
+
+        record = self._require_verification(
             verification_id
         )
 
-    def is_verified_adult(
-        self,
-        subject_id: str,
-    ) -> bool:
-        """Check whether a subject is currently verified as an adult."""
-
-        for verification in (
-            self._adult_verifications.values()
-        ):
-            if (
-                verification.subject_id == subject_id
-                and verification.status
-                == MuktiMahalVerificationStatus.VERIFIED
-            ):
-                return True
-
-        return False
-
-    # =========================================================
-    # 🪪 IDENTITY VERIFICATION
-    # =========================================================
-
-    def register_identity_verification(
-        self,
-        verification: MuktiMahalIdentityVerification,
-    ) -> MuktiMahalIdentityVerification:
-        """Register an identity-verification reference."""
-
-        if (
-            verification.verification_id
-            in self._identity_verifications
+        if record.status not in (
+            VerificationStatus.NOT_STARTED,
+            VerificationStatus.REJECTED,
+            VerificationStatus.EXPIRED,
         ):
             raise ValueError(
-                "Identity verification already exists."
+                "Verification cannot be started from its current state."
             )
 
-        self._identity_verifications[
-            verification.verification_id
-        ] = verification
+        record.status = VerificationStatus.PENDING
+        record.updated_at = _utc_now()
 
-        return verification
+        return record
 
-    def get_identity_verification(
+    def start_review(
         self,
         verification_id: str,
-    ) -> Optional[MuktiMahalIdentityVerification]:
-        """Return an identity-verification record."""
+        reviewer_id: str,
+    ) -> VerificationRecord:
+        """Move verification into manual review."""
 
-        return self._identity_verifications.get(
+        if not reviewer_id:
+            raise ValueError("reviewer_id is required")
+
+        record = self._require_verification(
             verification_id
         )
 
-    def is_verified_identity(
-        self,
-        subject_id: str,
-    ) -> bool:
-        """Check whether identity verification is valid."""
-
-        for verification in (
-            self._identity_verifications.values()
-        ):
-            if (
-                verification.subject_id == subject_id
-                and verification.status
-                == MuktiMahalVerificationStatus.VERIFIED
-            ):
-                return True
-
-        return False
-
-    # =========================================================
-    # 🤝 CONSENT
-    # =========================================================
-
-    def register_consent(
-        self,
-        consent: MuktiMahalConsentRecord,
-    ) -> MuktiMahalConsentRecord:
-        """Register an individual consent record."""
-
-        if consent.consent_id in self._consents:
+        if record.status != VerificationStatus.PENDING:
             raise ValueError(
-                "Consent record already exists."
+                "Only pending verification can enter review."
             )
 
-        self._consents[
-            consent.consent_id
-        ] = consent
+        record.status = VerificationStatus.UNDER_REVIEW
+        record.reviewer_id = reviewer_id
+        record.updated_at = _utc_now()
 
-        return consent
+        return record
 
-    def get_consent(
+    def verify(
         self,
-        consent_id: str,
-    ) -> Optional[MuktiMahalConsentRecord]:
-        """Return a consent record."""
+        verification_id: str,
+        reviewer_id: Optional[str] = None,
+        note: str = "",
+        expires_at: Optional[datetime] = None,
+    ) -> VerificationRecord:
+        """Mark a verification as verified."""
 
-        return self._consents.get(
-            consent_id
+        record = self._require_verification(
+            verification_id
         )
 
-    def has_active_consent(
+        if record.status not in (
+            VerificationStatus.PENDING,
+            VerificationStatus.UNDER_REVIEW,
+        ):
+            raise ValueError(
+                "Verification cannot be approved from its current state."
+            )
+
+        if record.status == VerificationStatus.UNDER_REVIEW:
+            if not reviewer_id:
+                raise ValueError(
+                    "reviewer_id is required for manual approval."
+                )
+
+            if record.reviewer_id != reviewer_id:
+                raise ValueError(
+                    "Reviewer is not assigned to this verification."
+                )
+
+        record.status = VerificationStatus.VERIFIED
+        record.review_note = note
+        record.verified_at = _utc_now()
+        record.expires_at = expires_at
+        record.updated_at = _utc_now()
+
+        return record
+
+    def reject(
+        self,
+        verification_id: str,
+        reason: VerificationReason,
+        note: str = "",
+    ) -> VerificationRecord:
+        """Reject a verification."""
+
+        record = self._require_verification(
+            verification_id
+        )
+
+        if record.status not in (
+            VerificationStatus.PENDING,
+            VerificationStatus.UNDER_REVIEW,
+        ):
+            raise ValueError(
+                "Verification cannot be rejected from its current state."
+            )
+
+        record.status = VerificationStatus.REJECTED
+        record.reason = reason
+        record.review_note = note
+        record.updated_at = _utc_now()
+
+        return record
+
+    def expire(
+        self,
+        verification_id: str,
+    ) -> VerificationRecord:
+        """Mark a verification as expired."""
+
+        record = self._require_verification(
+            verification_id
+        )
+
+        if record.status != VerificationStatus.VERIFIED:
+            raise ValueError(
+                "Only verified records can expire."
+            )
+
+        record.status = VerificationStatus.EXPIRED
+        record.updated_at = _utc_now()
+
+        return record
+
+    # =========================================================
+    # ELIGIBILITY
+    # =========================================================
+
+    def is_verified(
         self,
         subject_id: str,
+        verification_type: VerificationType,
     ) -> bool:
-        """Check whether active consent exists."""
+        """Return whether a subject has a current verified record."""
 
-        for consent in self._consents.values():
-            if (
-                consent.subject_id == subject_id
-                and consent.status
-                == MuktiMahalConsentStatus.GRANTED
-            ):
+        records = self.list_verifications(
+            subject_id=subject_id,
+            verification_type=verification_type,
+            status=VerificationStatus.VERIFIED,
+        )
+
+        now = _utc_now()
+
+        for record in records:
+            if record.expires_at is None:
+                return True
+
+            if record.expires_at > now:
                 return True
 
         return False
 
-    # =========================================================
-    # 👤 INDIVIDUAL ELIGIBILITY
-    # =========================================================
-
-    def check_individual_eligibility(
-        self,
-        subject_id: str,
-    ) -> bool:
-        """
-        Check minimum eligibility for protected creator
-        functionality.
-        """
-
-        return (
-            self.is_verified_adult(subject_id)
-            and self.is_verified_identity(subject_id)
-            and self.has_active_consent(subject_id)
-        )
-
-    # =========================================================
-    # 👥 COUPLE ELIGIBILITY
-    # =========================================================
-
-    def check_couple_eligibility(
-        self,
-        member_ids: List[str],
-    ) -> bool:
-        """
-        Check every participating member independently.
-
-        Each member requires:
-        - Adult verification
-        - Identity verification
-        - Active consent
-        """
-
-        if len(member_ids) < 2:
-            return False
-
-        for member_id in member_ids:
-
-            if not self.check_individual_eligibility(
-                member_id
-            ):
-                return False
-
-        return True
-
-    # =========================================================
-    # 🔄 VERIFICATION STATE
-    # =========================================================
-
-    def verification_summary(
+    def eligibility(
         self,
         subject_id: str,
     ) -> dict:
-        """Return a safe verification summary."""
+        """Return verification eligibility for a subject."""
+
+        identity = self.is_verified(
+            subject_id,
+            VerificationType.IDENTITY,
+        )
+
+        age = self.is_verified(
+            subject_id,
+            VerificationType.AGE,
+        )
+
+        consent = self.is_verified(
+            subject_id,
+            VerificationType.CONSENT,
+        )
+
+        rights = self.is_verified(
+            subject_id,
+            VerificationType.RIGHTS,
+        )
+
+        required_checks = []
+
+        if self.policy.identity_required:
+            required_checks.append(identity)
+
+        if self.policy.age_verification_required:
+            required_checks.append(age)
+
+        if self.policy.consent_verification_required:
+            required_checks.append(consent)
+
+        if self.policy.rights_verification_required:
+            required_checks.append(rights)
 
         return {
             "subject_id": subject_id,
-            "adult_verified": (
-                self.is_verified_adult(
-                    subject_id
-                )
+            "identity_verified": identity,
+            "age_verified": age,
+            "consent_verified": consent,
+            "rights_verified": rights,
+            "eligible": all(required_checks),
+        }
+
+    # =========================================================
+    # POLICY
+    # =========================================================
+
+    def policy_status(self) -> dict:
+        """Return active verification requirements."""
+
+        return {
+            "identity_required": self.policy.identity_required,
+            "age_verification_required": (
+                self.policy.age_verification_required
             ),
-            "identity_verified": (
-                self.is_verified_identity(
-                    subject_id
-                )
+            "consent_verification_required": (
+                self.policy.consent_verification_required
             ),
-            "consent_active": (
-                self.has_active_consent(
-                    subject_id
-                )
-            ),
-            "eligible": (
-                self.check_individual_eligibility(
-                    subject_id
-                )
+            "rights_verification_required": (
+                self.policy.rights_verification_required
             ),
         }
 
     # =========================================================
-    # 🔒 REVOKE CONSENT
-    # =========================================================
-
-    def revoke_consent(
-        self,
-        consent_id: str,
-    ) -> MuktiMahalConsentRecord:
-        """Withdraw an existing consent record."""
-
-        consent = self._consents.get(
-            consent_id
-        )
-
-        if consent is None:
-            raise ValueError(
-                "Consent record does not exist."
-            )
-
-        consent.status = (
-            MuktiMahalConsentStatus.WITHDRAWN
-        )
-
-        return consent
-
-    # =========================================================
-    # 🚫 REVOKE VERIFICATION
-    # =========================================================
-
-    def revoke_adult_verification(
-        self,
-        verification_id: str,
-    ) -> MuktiMahalAdultVerification:
-        """Revoke an adult-verification reference."""
-
-        verification = (
-            self._adult_verifications.get(
-                verification_id
-            )
-        )
-
-        if verification is None:
-            raise ValueError(
-                "Adult verification does not exist."
-            )
-
-        verification.status = (
-            MuktiMahalVerificationStatus.REVOKED
-        )
-
-        return verification
-
-    def revoke_identity_verification(
-        self,
-        verification_id: str,
-    ) -> MuktiMahalIdentityVerification:
-        """Revoke an identity-verification reference."""
-
-        verification = (
-            self._identity_verifications.get(
-                verification_id
-            )
-        )
-
-        if verification is None:
-            raise ValueError(
-                "Identity verification does not exist."
-            )
-
-        verification.status = (
-            MuktiMahalVerificationStatus.REVOKED
-        )
-
-        return verification
-
-    # =========================================================
-    # 📊 STATUS
+    # STATUS
     # =========================================================
 
     def status(self) -> dict:
-        """Return safe verification-service status."""
+        """Return safe verification runtime status."""
 
         return {
-            "service": (
-                "SUPREME_MUKTI_MAHAL_VERIFICATION"
-            ),
-            "initialized": self._initialized,
-            "adult_verifications": len(
-                self._adult_verifications
-            ),
-            "identity_verifications": len(
-                self._identity_verifications
-            ),
-            "consents": len(
-                self._consents
-            ),
-            "raw_documents_stored": False,
-            "raw_otp_stored": False,
+            "service": "MUKTI_MAHAL_VERIFICATION",
+            "verification_records": len(self._records),
+            "policy": self.policy_status(),
         }
+
+    # =========================================================
+    # INTERNAL
+    # =========================================================
+
+    def _require_verification(
+        self,
+        verification_id: str,
+    ) -> VerificationRecord:
+        """Return a record or raise a clear error."""
+
+        record = self.get_verification(
+            verification_id
+        )
+
+        if record is None:
+            raise ValueError(
+                "Verification record not found."
+            )
+
+        return record
 
 
 __all__ = [
-    "MuktiMahalVerificationService",
+    "VerificationStatus",
+    "VerificationType",
+    "VerificationReason",
+    "VerificationRecord",
+    "VerificationPolicy",
+    "MuktiMahalVerification",
 ]
