@@ -93,10 +93,10 @@ class EngineManager:
 
         for name, engine in self.engines.items():
 
-            if hasattr(engine, "status"):
-                status[name] = engine.status()
-
-            else:
-                status[name] = "UNKNOWN"
-
+          if hasattr(engine, "status"):
+    value = engine.status
+    status[name] = value() if callable(value) else value
+else:
+    status[name] = "UNKNOWN"
+    
         return status
