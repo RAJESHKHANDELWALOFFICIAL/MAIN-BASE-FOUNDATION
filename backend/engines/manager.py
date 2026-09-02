@@ -80,9 +80,9 @@ class EngineManager:
         return self.engines.get(name)
 
     def list_engines(self):
-        """
-        List all registered engines.
-        """
+     """
+     List all registered engines.
+     """
         return list(self.engines.keys())
 
        def engine_status(self):
