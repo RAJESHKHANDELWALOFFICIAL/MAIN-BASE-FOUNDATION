@@ -173,7 +173,7 @@ class SupremeOwner:
     dashboard_theme: str = "SUPREME"
 
 # Profile Privacy
-profile_visibility: SupremeProfileVisibility = (
+profile_visibility:    SupremeProfileVisibility = (
     SupremeProfileVisibility.OWNER_ONLY
 )
 
