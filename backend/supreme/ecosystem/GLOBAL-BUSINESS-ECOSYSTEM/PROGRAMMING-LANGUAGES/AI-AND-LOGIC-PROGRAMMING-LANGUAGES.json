@@ -1,0 +1,151 @@
+{
+  "display_name": "🤖 AI-AND-LOGIC-PROGRAMMING-LANGUAGES 🤖",
+  "category": "AI-AND-LOGIC-PROGRAMMING-LANGUAGES",
+  "purpose": "Programming languages and language technologies used for artificial intelligence, symbolic reasoning, knowledge representation, inference, expert systems, constraint solving and intelligent software.",
+  "languages": [
+    {
+      "name": "PROLOG",
+      "family": "LOGIC-PROGRAMMING",
+      "primary_uses": [
+        "LOGIC-PROGRAMMING",
+        "KNOWLEDGE-REPRESENTATION",
+        "AUTOMATED-REASONING",
+        "EXPERT-SYSTEMS",
+        "NATURAL-LANGUAGE-PROCESSING"
+      ]
+    },
+    {
+      "name": "LISP",
+      "family": "LISP-FAMILY",
+      "primary_uses": [
+        "ARTIFICIAL-INTELLIGENCE",
+        "SYMBOLIC-COMPUTATION",
+        "KNOWLEDGE-REPRESENTATION",
+        "AUTOMATED-REASONING"
+      ]
+    },
+    {
+      "name": "COMMON-LISP",
+      "family": "LISP-FAMILY",
+      "primary_uses": [
+        "ARTIFICIAL-INTELLIGENCE",
+        "SYMBOLIC-COMPUTATION",
+        "EXPERT-SYSTEMS",
+        "GENERAL-PURPOSE-PROGRAMMING"
+      ]
+    },
+    {
+      "name": "SCHEME",
+      "family": "LISP-FAMILY",
+      "primary_uses": [
+        "ARTIFICIAL-INTELLIGENCE-RESEARCH",
+        "SYMBOLIC-COMPUTATION",
+        "LANGUAGE-RESEARCH",
+        "EDUCATION"
+      ]
+    },
+    {
+      "name": "RACKET",
+      "family": "LISP-FAMILY",
+      "primary_uses": [
+        "LANGUAGE-DESIGN",
+        "SYMBOLIC-PROGRAMMING",
+        "ARTIFICIAL-INTELLIGENCE-RESEARCH",
+        "EDUCATION"
+      ]
+    },
+    {
+      "name": "MERCURY",
+      "family": "LOGIC-FUNCTIONAL",
+      "primary_uses": [
+        "LOGIC-PROGRAMMING",
+        "DECLARATIVE-PROGRAMMING",
+        "COMPILER-RESEARCH",
+        "AI-RESEARCH"
+      ]
+    },
+    {
+      "name": "DATALOG",
+      "family": "LOGIC-PROGRAMMING",
+      "primary_uses": [
+        "KNOWLEDGE-REPRESENTATION",
+        "DATABASE-REASONING",
+        "RULE-BASED-SYSTEMS",
+        "DATA-ANALYSIS"
+      ]
+    },
+    {
+      "name": "ASP",
+      "family": "ANSWER-SET-PROGRAMMING",
+      "primary_uses": [
+        "KNOWLEDGE-REPRESENTATION",
+        "CONSTRAINT-SOLVING",
+        "PLANNING",
+        "AUTOMATED-REASONING"
+      ]
+    },
+    {
+      "name": "PYTHON",
+      "family": "GENERAL-PURPOSE",
+      "primary_uses": [
+        "MACHINE-LEARNING",
+        "DEEP-LEARNING",
+        "ARTIFICIAL-INTELLIGENCE",
+        "DATA-SCIENCE",
+        "NATURAL-LANGUAGE-PROCESSING",
+        "COMPUTER-VISION"
+      ]
+    },
+    {
+      "name": "JULIA",
+      "family": "GENERAL-PURPOSE-SCIENTIFIC",
+      "primary_uses": [
+        "SCIENTIFIC-AI",
+        "NUMERICAL-MACHINE-LEARNING",
+        "OPTIMIZATION",
+        "SIMULATION"
+      ]
+    },
+    {
+      "name": "WOLFRAM-LANGUAGE",
+      "family": "SYMBOLIC-COMPUTATION",
+      "primary_uses": [
+        "COMPUTATIONAL-INTELLIGENCE",
+        "SYMBOLIC-REASONING",
+        "MATHEMATICS",
+        "KNOWLEDGE-BASED-COMPUTATION"
+      ]
+    }
+  ],
+  "ai_domains": [
+    "MACHINE-LEARNING",
+    "DEEP-LEARNING",
+    "NATURAL-LANGUAGE-PROCESSING",
+    "COMPUTER-VISION",
+    "KNOWLEDGE-REPRESENTATION",
+    "EXPERT-SYSTEMS",
+    "AUTOMATED-REASONING",
+    "SYMBOLIC-AI",
+    "RULE-BASED-AI",
+    "PLANNING-AND-SCHEDULING",
+    "CONSTRAINT-SOLVING",
+    "OPTIMIZATION",
+    "ROBOTICS-AI",
+    "INTELLIGENT-AGENTS"
+  ],
+  "core_concepts": [
+    "LOGIC-PROGRAMMING",
+    "SYMBOLIC-REASONING",
+    "KNOWLEDGE-REPRESENTATION",
+    "RULE-BASED-REASONING",
+    "INFERENCE",
+    "UNIFICATION",
+    "BACKTRACKING",
+    "CONSTRAINT-SATISFACTION",
+    "AUTOMATED-REASONING",
+    "PROBABILISTIC-REASONING",
+    "MACHINE-LEARNING",
+    "PATTERN-RECOGNITION",
+    "INTELLIGENT-AGENTS"
+  ]
+}
