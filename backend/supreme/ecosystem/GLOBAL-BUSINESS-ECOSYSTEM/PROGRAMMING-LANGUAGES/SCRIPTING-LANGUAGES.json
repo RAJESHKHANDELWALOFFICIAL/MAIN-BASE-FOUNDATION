@@ -1,0 +1,176 @@
+{
+  "display_name": "📜 SCRIPTING-LANGUAGES 📜",
+  "category": "SCRIPTING-LANGUAGES",
+  "purpose": "Languages commonly used for automation, system administration, task automation, text processing, web scripting, application scripting, build workflows and rapid development.",
+  "languages": [
+    {
+      "name": "PYTHON",
+      "primary_uses": [
+        "AUTOMATION",
+        "SYSTEM-ADMINISTRATION",
+        "WEB-SCRIPTING",
+        "DATA-PROCESSING",
+        "ARTIFICIAL-INTELLIGENCE",
+        "DEVOPS-AUTOMATION"
+      ]
+    },
+    {
+      "name": "JAVASCRIPT",
+      "primary_uses": [
+        "WEB-SCRIPTING",
+        "BROWSER-AUTOMATION",
+        "SERVER-SIDE-SCRIPTING",
+        "APPLICATION-SCRIPTING"
+      ]
+    },
+    {
+      "name": "TYPESCRIPT",
+      "primary_uses": [
+        "APPLICATION-SCRIPTING",
+        "WEB-AUTOMATION",
+        "SERVER-SIDE-SCRIPTING",
+        "LARGE-SCALE-AUTOMATION"
+      ]
+    },
+    {
+      "name": "BASH",
+      "primary_uses": [
+        "LINUX-AUTOMATION",
+        "SYSTEM-ADMINISTRATION",
+        "DEVOPS",
+        "SERVER-AUTOMATION",
+        "BUILD-AUTOMATION"
+      ]
+    },
+    {
+      "name": "POWERSHELL",
+      "primary_uses": [
+        "WINDOWS-AUTOMATION",
+        "SYSTEM-ADMINISTRATION",
+        "CLOUD-AUTOMATION",
+        "DEVOPS",
+        "SECURITY-AUTOMATION"
+      ]
+    },
+    {
+      "name": "PERL",
+      "primary_uses": [
+        "TEXT-PROCESSING",
+        "SYSTEM-ADMINISTRATION",
+        "WEB-SCRIPTING",
+        "AUTOMATION",
+        "LEGACY-SYSTEMS"
+      ]
+    },
+    {
+      "name": "RUBY",
+      "primary_uses": [
+        "WEB-SCRIPTING",
+        "AUTOMATION",
+        "DEVOPS",
+        "CONFIGURATION-AUTOMATION"
+      ]
+    },
+    {
+      "name": "LUA",
+      "primary_uses": [
+        "EMBEDDED-SCRIPTING",
+        "GAME-SCRIPTING",
+        "APPLICATION-SCRIPTING",
+        "CONFIGURATION"
+      ]
+    },
+    {
+      "name": "TCL",
+      "primary_uses": [
+        "TEST-AUTOMATION",
+        "EDA-AUTOMATION",
+        "APPLICATION-SCRIPTING",
+        "SYSTEM-AUTOMATION"
+      ]
+    },
+    {
+      "name": "GROOVY",
+      "primary_uses": [
+        "BUILD-AUTOMATION",
+        "DEVOPS",
+        "CI-CD",
+        "JVM-SCRIPTING",
+        "AUTOMATION"
+      ]
+    },
+    {
+      "name": "AWK",
+      "primary_uses": [
+        "TEXT-PROCESSING",
+        "DATA-EXTRACTION",
+        "UNIX-AUTOMATION",
+        "LOG-PROCESSING"
+      ]
+    },
+    {
+      "name": "SED",
+      "primary_uses": [
+        "TEXT-TRANSFORMATION",
+        "TEXT-PROCESSING",
+        "UNIX-AUTOMATION",
+        "FILE-PROCESSING"
+      ]
+    },
+    {
+      "name": "ZSH",
+      "primary_uses": [
+        "COMMAND-LINE-AUTOMATION",
+        "SHELL-SCRIPTING",
+        "SYSTEM-ADMINISTRATION"
+      ]
+    },
+    {
+      "name": "FISH",
+      "primary_uses": [
+        "COMMAND-LINE-AUTOMATION",
+        "SHELL-SCRIPTING",
+        "INTERACTIVE-SYSTEM-ADMINISTRATION"
+      ]
+    },
+    {
+      "name": "VBScript",
+      "primary_uses": [
+        "WINDOWS-AUTOMATION",
+        "LEGACY-WINDOWS-SCRIPTING",
+        "SYSTEM-ADMINISTRATION"
+      ]
+    }
+  ],
+  "scripting_domains": [
+    "WEB-AUTOMATION",
+    "SYSTEM-ADMINISTRATION",
+    "SERVER-AUTOMATION",
+    "DEVOPS-AUTOMATION",
+    "CLOUD-AUTOMATION",
+    "BUILD-AUTOMATION",
+    "TEST-AUTOMATION",
+    "DATA-PROCESSING",
+    "TEXT-PROCESSING",
+    "FILE-PROCESSING",
+    "SECURITY-AUTOMATION",
+    "GAME-SCRIPTING",
+    "APPLICATION-SCRIPTING"
+  ],
+  "core_capabilities": [
+    "TASK-AUTOMATION",
+    "COMMAND-LINE-AUTOMATION",
+    "FILE-MANAGEMENT",
+    "PROCESS-MANAGEMENT",
+    "TEXT-PROCESSING",
+    "LOG-PROCESSING",
+    "SYSTEM-ADMINISTRATION",
+    "WEB-AUTOMATION",
+    "API-AUTOMATION",
+    "BUILD-AUTOMATION",
+    "TEST-AUTOMATION",
+    "DEPLOYMENT-AUTOMATION",
+    "CI-CD-AUTOMATION",
+    "CLOUD-AUTOMATION"
+  ]
+}
