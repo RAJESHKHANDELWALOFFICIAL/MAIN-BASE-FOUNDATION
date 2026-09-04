@@ -1,0 +1,370 @@
+{
+  "catalog": {
+    "id": "global-server-systems-master-catalog",
+    "name": "Global Server Systems Master Catalog",
+    "version": "1.0.0",
+    "status": "active-development",
+    "scope": "global",
+    "coverage": "A-Z"
+  },
+
+  "definition": {
+    "purpose": "Master classification of server systems used for computing, networking, applications, data, communication, security and digital services.",
+    "server_model": [
+      "physical-server",
+      "virtual-server",
+      "cloud-server",
+      "bare-metal-server",
+      "dedicated-server",
+      "managed-server",
+      "edge-server"
+    ]
+  },
+
+  "server_categories": [
+    {
+      "id": "web-server",
+      "name": "Web Server",
+      "purpose": "Serves websites and HTTP-based web resources.",
+      "functions": [
+        "HTTP-request-processing",
+        "HTTPS-request-processing",
+        "static-content-serving",
+        "reverse-proxying",
+        "TLS-termination",
+        "virtual-hosting"
+      ]
+    },
+    {
+      "id": "application-server",
+      "name": "Application Server",
+      "purpose": "Runs application business logic and application services.",
+      "functions": [
+        "business-logic",
+        "application-runtime",
+        "session-management",
+        "service-processing",
+        "background-processing"
+      ]
+    },
+    {
+      "id": "database-server",
+      "name": "Database Server",
+      "purpose": "Provides database storage, processing and access services.",
+      "functions": [
+        "data-storage",
+        "query-processing",
+        "transaction-processing",
+        "database-management",
+        "database-access-control"
+      ]
+    },
+    {
+      "id": "file-server",
+      "name": "File Server",
+      "purpose": "Provides centralized file storage and file access.",
+      "functions": [
+        "file-storage",
+        "file-sharing",
+        "access-control",
+        "file-management",
+        "backup-integration"
+      ]
+    },
+    {
+      "id": "mail-server",
+      "name": "Mail Server",
+      "purpose": "Handles electronic mail delivery and mailbox services.",
+      "functions": [
+        "email-sending",
+        "email-receiving",
+        "mailbox-management",
+        "spam-filtering",
+        "email-authentication"
+      ]
+    },
+    {
+      "id": "DNS-server",
+      "name": "DNS Server",
+      "purpose": "Provides Domain Name System resolution and DNS management services.",
+      "functions": [
+        "domain-resolution",
+        "DNS-record-management",
+        "authoritative-DNS",
+        "recursive-DNS",
+        "DNS-caching"
+      ]
+    },
+    {
+      "id": "proxy-server",
+      "name": "Proxy Server",
+      "purpose": "Acts as an intermediary between clients and other servers.",
+      "functions": [
+        "request-forwarding",
+        "access-control",
+        "caching",
+        "traffic-management",
+        "privacy-controls"
+      ]
+    },
+    {
+      "id": "reverse-proxy-server",
+      "name": "Reverse Proxy Server",
+      "purpose": "Receives client requests and forwards them to backend services.",
+      "functions": [
+        "traffic-routing",
+        "TLS-termination",
+        "load-balancing",
+        "caching",
+        "backend-protection"
+      ]
+    },
+    {
+      "id": "API-server",
+      "name": "API Server",
+      "purpose": "Provides programmatic interfaces for applications and services.",
+      "functions": [
+        "API-request-processing",
+        "authentication",
+        "authorization",
+        "data-access",
+        "service-integration"
+      ]
+    },
+    {
+      "id": "authentication-server",
+      "name": "Authentication Server",
+      "purpose": "Provides identity authentication services.",
+      "functions": [
+        "user-authentication",
+        "credential-verification",
+        "token-issuance",
+        "identity-management",
+        "session-management"
+      ]
+    },
+    {
+      "id": "authorization-server",
+      "name": "Authorization Server",
+      "purpose": "Controls access permissions and authorization decisions.",
+      "functions": [
+        "access-control",
+        "permission-evaluation",
+        "token-management",
+        "scope-management",
+        "policy-enforcement"
+      ]
+    },
+    {
+      "id": "storage-server",
+      "name": "Storage Server",
+      "purpose": "Provides centralized storage services.",
+      "functions": [
+        "block-storage",
+        "file-storage",
+        "object-storage",
+        "storage-management",
+        "backup"
+      ]
+    },
+    {
+      "id": "backup-server",
+      "name": "Backup Server",
+      "purpose": "Provides centralized backup and recovery services.",
+      "functions": [
+        "data-backup",
+        "backup-scheduling",
+        "retention",
+        "restore",
+        "disaster-recovery"
+      ]
+    },
+    {
+      "id": "media-server",
+      "name": "Media Server",
+      "purpose": "Processes and delivers digital media.",
+      "functions": [
+        "media-storage",
+        "media-processing",
+        "media-streaming",
+        "transcoding",
+        "content-delivery"
+      ]
+    },
+    {
+      "id": "messaging-server",
+      "name": "Messaging Server",
+      "purpose": "Provides messaging and communication services.",
+      "functions": [
+        "message-routing",
+        "message-storage",
+        "notifications",
+        "real-time-communication",
+        "queue-processing"
+      ]
+    },
+    {
+      "id": "application-programming-interface-gateway",
+      "name": "API Gateway Server",
+      "purpose": "Provides a controlled entry point for multiple APIs and backend services.",
+      "functions": [
+        "API-routing",
+        "authentication",
+        "authorization",
+        "rate-limiting",
+        "request-transformation",
+        "monitoring"
+      ]
+    },
+    {
+      "id": "load-balancer-server",
+      "name": "Load Balancer",
+      "purpose": "Distributes incoming traffic across multiple backend systems.",
+      "functions": [
+        "traffic-distribution",
+        "health-checking",
+        "failover",
+        "session-routing",
+        "availability-management"
+      ]
+    },
+    {
+      "id": "monitoring-server",
+      "name": "Monitoring Server",
+      "purpose": "Collects and analyzes infrastructure and application monitoring data.",
+      "functions": [
+        "metrics-collection",
+        "health-monitoring",
+        "alerting",
+        "performance-monitoring",
+        "availability-monitoring"
+      ]
+    },
+    {
+      "id": "logging-server",
+      "name": "Logging Server",
+      "purpose": "Centralizes system and application logs.",
+      "functions": [
+        "log-collection",
+        "log-storage",
+        "log-search",
+        "log-analysis",
+        "audit-trails"
+      ]
+    },
+    {
+      "id": "container-server",
+      "name": "Container Server",
+      "purpose": "Runs containerized applications and services.",
+      "functions": [
+        "container-runtime",
+        "container-management",
+        "image-management",
+        "service-execution",
+        "container-networking"
+      ]
+    },
+    {
+      "id": "virtualization-server",
+      "name": "Virtualization Server",
+      "purpose": "Runs and manages virtual machines.",
+      "functions": [
+        "virtual-machine-execution",
+        "resource-allocation",
+        "virtual-networking",
+        "virtual-storage",
+        "VM-management"
+      ]
+    },
+    {
+      "id": "game-server",
+      "name": "Game Server",
+      "purpose": "Provides multiplayer game session and game-state services.",
+      "functions": [
+        "game-session-management",
+        "real-time-state",
+        "player-connections",
+        "match-management"
+      ]
+    },
+    {
+      "id": "search-server",
+      "name": "Search Server",
+      "purpose": "Provides indexing and search capabilities.",
+      "functions": [
+        "indexing",
+        "full-text-search",
+        "query-processing",
+        "ranking",
+        "search-analytics"
+      ]
+    },
+    {
+      "id": "AI-server",
+      "name": "AI Server",
+      "purpose": "Provides computing and serving infrastructure for artificial intelligence workloads.",
+      "functions": [
+        "model-serving",
+        "inference",
+        "GPU-computing",
+        "AI-API-services",
+        "model-management"
+      ]
+    }
+  ],
+
+  "server_relationships": [
+    {
+      "server": "web-server",
+      "connects_to": [
+        "application-server",
+        "API-server",
+        "database-server"
+      ]
+    },
+    {
+      "server": "application-server",
+      "connects_to": [
+        "database-server",
+        "API-server",
+        "storage-server",
+        "messaging-server"
+      ]
+    },
+    {
+      "server": "API-server",
+      "connects_to": [
+        "application-server",
+        "database-server",
+        "authentication-server",
+        "authorization-server"
+      ]
+    },
+    {
+      "server": "authentication-server",
+      "supports": [
+        "application-server",
+        "API-server",
+        "web-server"
+      ]
+    },
+    {
+      "server": "load-balancer-server",
+      "routes_to": [
+        "web-server",
+        "application-server",
+        "API-server"
+      ]
+    },
+    {
+      "server": "monitoring-server",
+      "monitors": [
+        "physical-server",
+        "virtual-server",
+        "application-server",
+        "database-server",
+        "web-server"
+      ]
+    }
+  ]
+}
