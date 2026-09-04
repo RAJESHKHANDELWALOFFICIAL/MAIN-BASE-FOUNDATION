@@ -1,0 +1,151 @@
+{
+  "display_name": "📊 SCIENTIFIC-AND-DATA-PROGRAMMING-LANGUAGES 📊",
+  "category": "SCIENTIFIC-AND-DATA-PROGRAMMING-LANGUAGES",
+  "purpose": "Programming languages and computational environments used for scientific computing, numerical analysis, statistics, data analysis, mathematical modeling, simulation, visualization and data-intensive applications.",
+  "languages": [
+    {
+      "name": "PYTHON",
+      "primary_uses": [
+        "DATA-ANALYSIS",
+        "STATISTICS",
+        "MACHINE-LEARNING",
+        "ARTIFICIAL-INTELLIGENCE",
+        "SCIENTIFIC-COMPUTING",
+        "DATA-VISUALIZATION",
+        "AUTOMATION"
+      ]
+    },
+    {
+      "name": "R",
+      "primary_uses": [
+        "STATISTICS",
+        "DATA-ANALYSIS",
+        "DATA-VISUALIZATION",
+        "STATISTICAL-MODELING",
+        "BIOINFORMATICS"
+      ]
+    },
+    {
+      "name": "JULIA",
+      "primary_uses": [
+        "SCIENTIFIC-COMPUTING",
+        "NUMERICAL-COMPUTING",
+        "HIGH-PERFORMANCE-COMPUTING",
+        "MATHEMATICAL-MODELING",
+        "DATA-SCIENCE",
+        "SIMULATION"
+      ]
+    },
+    {
+      "name": "FORTRAN",
+      "primary_uses": [
+        "SCIENTIFIC-COMPUTING",
+        "NUMERICAL-ANALYSIS",
+        "HIGH-PERFORMANCE-COMPUTING",
+        "ENGINEERING-SIMULATION",
+        "WEATHER-MODELING"
+      ]
+    },
+    {
+      "name": "MATLAB",
+      "primary_uses": [
+        "NUMERICAL-COMPUTING",
+        "ENGINEERING",
+        "SIGNAL-PROCESSING",
+        "CONTROL-SYSTEMS",
+        "SCIENTIFIC-RESEARCH",
+        "SIMULATION"
+      ]
+    },
+    {
+      "name": "WOLFRAM-LANGUAGE",
+      "primary_uses": [
+        "SYMBOLIC-COMPUTATION",
+        "MATHEMATICS",
+        "SCIENTIFIC-COMPUTING",
+        "DATA-ANALYSIS",
+        "VISUALIZATION",
+        "COMPUTATIONAL-RESEARCH"
+      ]
+    },
+    {
+      "name": "SAS",
+      "primary_uses": [
+        "STATISTICAL-ANALYSIS",
+        "DATA-MANAGEMENT",
+        "BUSINESS-ANALYTICS",
+        "HEALTHCARE-ANALYTICS",
+        "RISK-ANALYSIS"
+      ]
+    },
+    {
+      "name": "GNU-OCTAVE",
+      "primary_uses": [
+        "NUMERICAL-COMPUTING",
+        "MATHEMATICAL-MODELING",
+        "ENGINEERING-COMPUTATION",
+        "SCIENTIFIC-COMPUTING"
+      ]
+    },
+    {
+      "name": "SCILAB",
+      "primary_uses": [
+        "NUMERICAL-COMPUTING",
+        "ENGINEERING",
+        "SIMULATION",
+        "SIGNAL-PROCESSING",
+        "SCIENTIFIC-COMPUTING"
+      ]
+    },
+    {
+      "name": "GAP",
+      "primary_uses": [
+        "COMPUTATIONAL-ALGEBRA",
+        "GROUP-THEORY",
+        "MATHEMATICAL-RESEARCH"
+      ]
+    },
+    {
+      "name": "MAPLE",
+      "primary_uses": [
+        "SYMBOLIC-MATHEMATICS",
+        "NUMERICAL-MATHEMATICS",
+        "ENGINEERING",
+        "SCIENTIFIC-COMPUTING"
+      ]
+    }
+  ],
+  "core_capabilities": [
+    "NUMERICAL-COMPUTING",
+    "STATISTICAL-COMPUTING",
+    "DATA-ANALYSIS",
+    "DATA-MANIPULATION",
+    "DATA-VISUALIZATION",
+    "MACHINE-LEARNING",
+    "SCIENTIFIC-SIMULATION",
+    "MATHEMATICAL-MODELING",
+    "SYMBOLIC-COMPUTATION",
+    "HIGH-PERFORMANCE-COMPUTING",
+    "SIGNAL-PROCESSING",
+    "IMAGE-PROCESSING",
+    "OPTIMIZATION",
+    "STATISTICAL-MODELING",
+    "BIOINFORMATICS"
+  ],
+  "application_areas": [
+    "ARTIFICIAL-INTELLIGENCE",
+    "DATA-SCIENCE",
+    "ENGINEERING",
+    "PHYSICS",
+    "CHEMISTRY",
+    "BIOLOGY",
+    "MEDICINE",
+    "ECONOMICS",
+    "FINANCE",
+    "ASTRONOMY",
+    "CLIMATE-SCIENCE",
+    "WEATHER-MODELING",
+    "SOCIAL-SCIENCE",
+    "ACADEMIC-RESEARCH"
+  ]
+}
