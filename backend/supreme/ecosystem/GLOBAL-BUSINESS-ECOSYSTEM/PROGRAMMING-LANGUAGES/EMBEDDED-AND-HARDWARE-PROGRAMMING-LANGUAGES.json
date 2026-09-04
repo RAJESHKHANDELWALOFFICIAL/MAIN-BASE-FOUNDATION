@@ -1,0 +1,157 @@
+{
+  "display_name": "🔧 EMBEDDED-AND-HARDWARE-PROGRAMMING-LANGUAGES 🔧",
+  "category": "EMBEDDED-AND-HARDWARE-PROGRAMMING-LANGUAGES",
+  "purpose": "Languages used for embedded systems, microcontrollers, firmware, device software, hardware control, digital logic and hardware description.",
+  "languages": [
+    {
+      "name": "C",
+      "type": "GENERAL-PURPOSE-PROGRAMMING-LANGUAGE",
+      "primary_uses": [
+        "MICROCONTROLLERS",
+        "FIRMWARE",
+        "DEVICE-DRIVERS",
+        "REAL-TIME-SYSTEMS",
+        "EMBEDDED-SYSTEMS"
+      ]
+    },
+    {
+      "name": "C++",
+      "type": "GENERAL-PURPOSE-PROGRAMMING-LANGUAGE",
+      "primary_uses": [
+        "EMBEDDED-SOFTWARE",
+        "FIRMWARE",
+        "REAL-TIME-SYSTEMS",
+        "ROBOTICS",
+        "HIGH-PERFORMANCE-EMBEDDED-SYSTEMS"
+      ]
+    },
+    {
+      "name": "RUST",
+      "type": "SYSTEMS-PROGRAMMING-LANGUAGE",
+      "primary_uses": [
+        "EMBEDDED-SYSTEMS",
+        "FIRMWARE",
+        "SECURITY-SENSITIVE-DEVICES",
+        "SYSTEMS-PROGRAMMING"
+      ]
+    },
+    {
+      "name": "ADA",
+      "type": "SYSTEMS-PROGRAMMING-LANGUAGE",
+      "primary_uses": [
+        "SAFETY-CRITICAL-SYSTEMS",
+        "AEROSPACE",
+        "DEFENSE",
+        "EMBEDDED-SYSTEMS"
+      ]
+    },
+    {
+      "name": "MICROPYTHON",
+      "type": "PYTHON-DERIVATIVE",
+      "primary_uses": [
+        "MICROCONTROLLERS",
+        "EMBEDDED-PROTOTYPING",
+        "IOT-DEVICES",
+        "EDUCATIONAL-HARDWARE"
+      ]
+    },
+    {
+      "name": "CIRCUITPYTHON",
+      "type": "PYTHON-DERIVATIVE",
+      "primary_uses": [
+        "MICROCONTROLLERS",
+        "EDUCATIONAL-HARDWARE",
+        "PROTOTYPING",
+        "IOT-DEVICES"
+      ]
+    },
+    {
+      "name": "VERILOG",
+      "type": "HARDWARE-DESCRIPTION-LANGUAGE",
+      "primary_uses": [
+        "DIGITAL-LOGIC-DESIGN",
+        "FPGA",
+        "ASIC-DESIGN",
+        "HARDWARE-VERIFICATION"
+      ]
+    },
+    {
+      "name": "SYSTEMVERILOG",
+      "type": "HARDWARE-DESCRIPTION-AND-VERIFICATION-LANGUAGE",
+      "primary_uses": [
+        "ASIC-DESIGN",
+        "FPGA",
+        "HARDWARE-VERIFICATION",
+        "DIGITAL-DESIGN"
+      ]
+    },
+    {
+      "name": "VHDL",
+      "type": "HARDWARE-DESCRIPTION-LANGUAGE",
+      "primary_uses": [
+        "FPGA",
+        "ASIC-DESIGN",
+        "DIGITAL-LOGIC",
+        "HARDWARE-VERIFICATION"
+      ]
+    },
+    {
+      "name": "CHISEL",
+      "type": "HARDWARE-CONSTRUCTION-LANGUAGE",
+      "primary_uses": [
+        "DIGITAL-HARDWARE-DESIGN",
+        "FPGA",
+        "ASIC-DESIGN",
+        "HARDWARE-GENERATION"
+      ]
+    },
+    {
+      "name": "SPINALHDL",
+      "type": "HARDWARE-DESCRIPTION-FRAMEWORK",
+      "primary_uses": [
+        "FPGA",
+        "ASIC-DESIGN",
+        "DIGITAL-HARDWARE-DESIGN"
+      ]
+    },
+    {
+      "name": "VERILOG-AMS",
+      "type": "ANALOG-MIXED-SIGNAL-HARDWARE-DESCRIPTION-LANGUAGE",
+      "primary_uses": [
+        "ANALOG-DESIGN",
+        "MIXED-SIGNAL-DESIGN",
+        "HARDWARE-SIMULATION"
+      ]
+    }
+  ],
+  "hardware_domains": [
+    "MICROCONTROLLERS",
+    "MICROPROCESSORS",
+    "SYSTEM-ON-CHIP",
+    "FIELD-PROGRAMMABLE-GATE-ARRAYS",
+    "APPLICATION-SPECIFIC-INTEGRATED-CIRCUITS",
+    "SENSORS",
+    "ACTUATORS",
+    "ROBOTICS",
+    "AUTOMOTIVE-EMBEDDED-SYSTEMS",
+    "INDUSTRIAL-CONTROL-SYSTEMS",
+    "INTERNET-OF-THINGS",
+    "CONSUMER-ELECTRONICS",
+    "AEROSPACE-SYSTEMS",
+    "MEDICAL-DEVICES"
+  ],
+  "core_capabilities": [
+    "FIRMWARE-DEVELOPMENT",
+    "DEVICE-DRIVER-DEVELOPMENT",
+    "REAL-TIME-PROGRAMMING",
+    "LOW-LEVEL-HARDWARE-CONTROL",
+    "DIGITAL-LOGIC-DESIGN",
+    "HARDWARE-VERIFICATION",
+    "FPGA-PROGRAMMING",
+    "ASIC-DESIGN",
+    "MICROCONTROLLER-PROGRAMMING",
+    "IOT-PROGRAMMING",
+    "ROBOTICS-PROGRAMMING",
+    "SAFETY-CRITICAL-PROGRAMMING"
+  ]
+}
