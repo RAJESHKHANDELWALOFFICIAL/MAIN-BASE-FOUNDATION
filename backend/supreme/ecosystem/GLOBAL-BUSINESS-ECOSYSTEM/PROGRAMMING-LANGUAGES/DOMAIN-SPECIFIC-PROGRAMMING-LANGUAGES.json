@@ -1,0 +1,220 @@
+{
+  "display_name": "🔬 DOMAIN-SPECIFIC-PROGRAMMING-LANGUAGES 🔬",
+  "category": "DOMAIN-SPECIFIC-PROGRAMMING-LANGUAGES",
+  "purpose": "Languages designed primarily for a particular technical, scientific, business, engineering, hardware, graphics, database, configuration or automation domain.",
+  "languages": [
+    {
+      "name": "SQL",
+      "domain": "DATABASES",
+      "primary_uses": [
+        "DATABASE-QUERYING",
+        "DATA-MANAGEMENT",
+        "DATA-ANALYSIS"
+      ]
+    },
+    {
+      "name": "HTML",
+      "domain": "WEB-DOCUMENT-STRUCTURE",
+      "primary_uses": [
+        "WEB-DOCUMENTS",
+        "WEB-PAGE-STRUCTURE",
+        "SEMANTIC-MARKUP"
+      ]
+    },
+    {
+      "name": "CSS",
+      "domain": "WEB-PRESENTATION",
+      "primary_uses": [
+        "WEB-STYLING",
+        "LAYOUT",
+        "RESPONSIVE-DESIGN",
+        "VISUAL-PRESENTATION"
+      ]
+    },
+    {
+      "name": "GLSL",
+      "domain": "GRAPHICS",
+      "primary_uses": [
+        "GRAPHICS-SHADERS",
+        "VERTEX-SHADERS",
+        "FRAGMENT-SHADERS",
+        "GPU-PROGRAMMING"
+      ]
+    },
+    {
+      "name": "HLSL",
+      "domain": "GRAPHICS",
+      "primary_uses": [
+        "GPU-PROGRAMMING",
+        "GRAPHICS-SHADERS",
+        "GAME-GRAPHICS"
+      ]
+    },
+    {
+      "name": "CUDA-C",
+      "domain": "GPU-COMPUTING",
+      "primary_uses": [
+        "GPU-COMPUTING",
+        "PARALLEL-COMPUTING",
+        "MACHINE-LEARNING",
+        "SCIENTIFIC-COMPUTING"
+      ]
+    },
+    {
+      "name": "OPENCL-C",
+      "domain": "HETEROGENEOUS-COMPUTING",
+      "primary_uses": [
+        "GPU-COMPUTING",
+        "CPU-COMPUTING",
+        "PARALLEL-COMPUTING"
+      ]
+    },
+    {
+      "name": "VERILOG",
+      "domain": "HARDWARE-DESCRIPTION",
+      "primary_uses": [
+        "DIGITAL-LOGIC",
+        "FPGA-DESIGN",
+        "ASIC-DESIGN"
+      ]
+    },
+    {
+      "name": "VHDL",
+      "domain": "HARDWARE-DESCRIPTION",
+      "primary_uses": [
+        "DIGITAL-LOGIC",
+        "FPGA-DESIGN",
+        "ASIC-DESIGN"
+      ]
+    },
+    {
+      "name": "SPARQL",
+      "domain": "SEMANTIC-WEB",
+      "primary_uses": [
+        "RDF-QUERYING",
+        "KNOWLEDGE-GRAPHS",
+        "LINKED-DATA"
+      ]
+    },
+    {
+      "name": "XQUERY",
+      "domain": "XML-DATA",
+      "primary_uses": [
+        "XML-QUERYING",
+        "XML-DATA-PROCESSING"
+      ]
+    },
+    {
+      "name": "XPATH",
+      "domain": "XML-DATA",
+      "primary_uses": [
+        "XML-NODE-SELECTION",
+        "DOCUMENT-PROCESSING"
+      ]
+    },
+    {
+      "name": "DAX",
+      "domain": "BUSINESS-INTELLIGENCE",
+      "primary_uses": [
+        "DATA-MODELING",
+        "BUSINESS-ANALYTICS",
+        "CALCULATED-MEASURES"
+      ]
+    },
+    {
+      "name": "MDX",
+      "domain": "MULTIDIMENSIONAL-ANALYTICS",
+      "primary_uses": [
+        "OLAP",
+        "BUSINESS-INTELLIGENCE",
+        "MULTIDIMENSIONAL-DATA"
+      ]
+    },
+    {
+      "name": "SOLIDITY",
+      "domain": "BLOCKCHAIN",
+      "primary_uses": [
+        "SMART-CONTRACTS",
+        "DECENTRALIZED-APPLICATIONS"
+      ]
+    },
+    {
+      "name": "GDSCRIPT",
+      "domain": "GAME-DEVELOPMENT",
+      "primary_uses": [
+        "GAMEPLAY-PROGRAMMING",
+        "GAME-LOGIC",
+        "GAME-DEVELOPMENT"
+      ]
+    },
+    {
+      "name": "VBA",
+      "domain": "OFFICE-AUTOMATION",
+      "primary_uses": [
+        "SPREADSHEET-AUTOMATION",
+        "OFFICE-AUTOMATION",
+        "BUSINESS-AUTOMATION"
+      ]
+    },
+    {
+      "name": "MATLAB",
+      "domain": "SCIENTIFIC-ENGINEERING",
+      "primary_uses": [
+        "NUMERICAL-COMPUTING",
+        "ENGINEERING",
+        "SIMULATION",
+        "SIGNAL-PROCESSING"
+      ]
+    },
+    {
+      "name": "R",
+      "domain": "STATISTICS-DATA-ANALYSIS",
+      "primary_uses": [
+        "STATISTICS",
+        "DATA-ANALYSIS",
+        "STATISTICAL-MODELING"
+      ]
+    },
+    {
+      "name": "PROLOG",
+      "domain": "LOGIC-AND-REASONING",
+      "primary_uses": [
+        "LOGIC-PROGRAMMING",
+        "KNOWLEDGE-REPRESENTATION",
+        "AUTOMATED-REASONING"
+      ]
+    }
+  ],
+  "domain_categories": [
+    "DATABASES",
+    "WEB-TECHNOLOGY",
+    "GRAPHICS",
+    "GPU-COMPUTING",
+    "HARDWARE-DESCRIPTION",
+    "SEMANTIC-WEB",
+    "XML-DATA",
+    "BUSINESS-INTELLIGENCE",
+    "BLOCKCHAIN",
+    "GAME-DEVELOPMENT",
+    "OFFICE-AUTOMATION",
+    "SCIENTIFIC-COMPUTING",
+    "STATISTICS",
+    "ARTIFICIAL-INTELLIGENCE",
+    "LOGIC-PROGRAMMING"
+  ],
+  "core_capabilities": [
+    "DOMAIN-SPECIFIC-AUTOMATION",
+    "SPECIALIZED-COMPUTATION",
+    "DATA-QUERYING",
+    "GRAPHICS-PROGRAMMING",
+    "GPU-PROGRAMMING",
+    "HARDWARE-DESIGN",
+    "SCIENTIFIC-COMPUTING",
+    "BUSINESS-ANALYTICS",
+    "WEB-DEVELOPMENT",
+    "GAME-DEVELOPMENT",
+    "BLOCKCHAIN-DEVELOPMENT",
+    "OFFICE-AUTOMATION",
+    "KNOWLEDGE-REPRESENTATION"
+  ]
+}
