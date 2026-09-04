@@ -1,0 +1,125 @@
+{
+  "display_name": "🧾 MARKUP-LANGUAGES-MASTER-CATALOG 🧾",
+  "category": "MARKUP-LANGUAGES",
+  "purpose": "Languages used to structure, describe, annotate, format and represent documents, web content, data and technical information.",
+  "languages": [
+    {
+      "name": "HTML",
+      "full_name": "HYPERTEXT-MARKUP-LANGUAGE",
+      "primary_uses": [
+        "WEB-DOCUMENTS",
+        "WEB-PAGES",
+        "SEMANTIC-STRUCTURE",
+        "WEB-APPLICATION-INTERFACES"
+      ]
+    },
+    {
+      "name": "XML",
+      "full_name": "EXTENSIBLE-MARKUP-LANGUAGE",
+      "primary_uses": [
+        "STRUCTURED-DATA",
+        "DOCUMENT-EXCHANGE",
+        "CONFIGURATION",
+        "DATA-INTERCHANGE"
+      ]
+    },
+    {
+      "name": "SVG",
+      "full_name": "SCALABLE-VECTOR-GRAPHICS",
+      "primary_uses": [
+        "VECTOR-GRAPHICS",
+        "WEB-GRAPHICS",
+        "ICONS",
+        "DIAGRAMS",
+        "DATA-VISUALIZATION"
+      ]
+    },
+    {
+      "name": "XHTML",
+      "full_name": "EXTENSIBLE-HYPERTEXT-MARKUP-LANGUAGE",
+      "primary_uses": [
+        "WEB-DOCUMENTS",
+        "STRUCTURED-WEB-CONTENT",
+        "XML-COMPATIBLE-WEB-DOCUMENTS"
+      ]
+    },
+    {
+      "name": "Markdown",
+      "full_name": "MARKDOWN",
+      "primary_uses": [
+        "DOCUMENTATION",
+        "README-FILES",
+        "TECHNICAL-WRITING",
+        "KNOWLEDGE-BASES"
+      ]
+    },
+    {
+      "name": "LaTeX",
+      "full_name": "LATEX-DOCUMENT-PREPARATION-SYSTEM",
+      "primary_uses": [
+        "SCIENTIFIC-DOCUMENTS",
+        "ACADEMIC-PAPERS",
+        "MATHEMATICAL-DOCUMENTS",
+        "TECHNICAL-PUBLISHING"
+      ]
+    },
+    {
+      "name": "AsciiDoc",
+      "full_name": "ASCIIDOC",
+      "primary_uses": [
+        "TECHNICAL-DOCUMENTATION",
+        "BOOKS",
+        "PROJECT-DOCUMENTATION",
+        "PUBLISHING"
+      ]
+    },
+    {
+      "name": "reStructuredText",
+      "full_name": "RESTRUCTUREDTEXT",
+      "primary_uses": [
+        "PYTHON-DOCUMENTATION",
+        "TECHNICAL-DOCUMENTATION",
+        "SOFTWARE-DOCUMENTATION"
+      ]
+    },
+    {
+      "name": "MediaWiki-Markup",
+      "full_name": "MEDIAWIKI-MARKUP",
+      "primary_uses": [
+        "WIKIS",
+        "KNOWLEDGE-BASES",
+        "COLLABORATIVE-DOCUMENTATION"
+      ]
+    },
+    {
+      "name": "TeX",
+      "full_name": "TEX",
+      "primary_uses": [
+        "TYPESETTING",
+        "MATHEMATICAL-PUBLISHING",
+        "SCIENTIFIC-PUBLISHING"
+      ]
+    }
+  ],
+  "markup_categories": [
+    "DOCUMENT-MARKUP",
+    "WEB-MARKUP",
+    "DATA-MARKUP",
+    "VECTOR-GRAPHICS-MARKUP",
+    "TECHNICAL-DOCUMENTATION-MARKUP",
+    "SCIENTIFIC-PUBLISHING-MARKUP",
+    "WIKI-MARKUP",
+    "TYPESETTING-MARKUP"
+  ],
+  "core_capabilities": [
+    "DOCUMENT-STRUCTURING",
+    "SEMANTIC-MARKUP",
+    "DATA-STRUCTURING",
+    "WEB-CONTENT-STRUCTURING",
+    "DOCUMENTATION",
+    "TECHNICAL-PUBLISHING",
+    "SCIENTIFIC-PUBLISHING",
+    "VECTOR-GRAPHICS",
+    "KNOWLEDGE-REPRESENTATION"
+  ]
+}
