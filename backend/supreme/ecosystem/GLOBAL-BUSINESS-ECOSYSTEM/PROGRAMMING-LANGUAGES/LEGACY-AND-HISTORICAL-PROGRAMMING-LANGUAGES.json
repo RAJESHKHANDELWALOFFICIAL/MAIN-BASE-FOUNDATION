@@ -1,0 +1,190 @@
+{
+  "display_name": "🕰️ LEGACY-AND-HISTORICAL-PROGRAMMING-LANGUAGES 🕰️",
+  "category": "LEGACY-AND-HISTORICAL-PROGRAMMING-LANGUAGES",
+  "purpose": "Historical, legacy and foundational programming languages that remain important for computing history, education, research, existing software systems, migration and compatibility.",
+  "languages": [
+    {
+      "name": "FORTRAN",
+      "primary_domains": [
+        "SCIENTIFIC-COMPUTING",
+        "NUMERICAL-COMPUTING",
+        "ENGINEERING",
+        "HIGH-PERFORMANCE-COMPUTING"
+      ]
+    },
+    {
+      "name": "COBOL",
+      "primary_domains": [
+        "BANKING",
+        "FINANCE",
+        "GOVERNMENT",
+        "INSURANCE",
+        "MAINFRAME-SYSTEMS",
+        "TRANSACTION-PROCESSING"
+      ]
+    },
+    {
+      "name": "ALGOL",
+      "primary_domains": [
+        "ALGORITHMIC-PROGRAMMING",
+        "COMPUTER-SCIENCE-RESEARCH",
+        "LANGUAGE-DESIGN"
+      ]
+    },
+    {
+      "name": "BASIC",
+      "primary_domains": [
+        "EDUCATION",
+        "GENERAL-PURPOSE-PROGRAMMING",
+        "PERSONAL-COMPUTING"
+      ]
+    },
+    {
+      "name": "PASCAL",
+      "primary_domains": [
+        "EDUCATION",
+        "STRUCTURED-PROGRAMMING",
+        "SOFTWARE-DEVELOPMENT"
+      ]
+    },
+    {
+      "name": "DELPHI-OBJECT-PASCAL",
+      "primary_domains": [
+        "DESKTOP-APPLICATIONS",
+        "BUSINESS-SOFTWARE",
+        "WINDOWS-APPLICATIONS"
+      ]
+    },
+    {
+      "name": "PL-I",
+      "primary_domains": [
+        "MAINFRAME-SYSTEMS",
+        "ENTERPRISE-SYSTEMS",
+        "SCIENTIFIC-COMPUTING"
+      ]
+    },
+    {
+      "name": "SMALLTALK",
+      "primary_domains": [
+        "OBJECT-ORIENTED-PROGRAMMING",
+        "SOFTWARE-ENGINEERING",
+        "EDUCATION",
+        "LANGUAGE-RESEARCH"
+      ]
+    },
+    {
+      "name": "ADA",
+      "primary_domains": [
+        "EMBEDDED-SYSTEMS",
+        "SAFETY-CRITICAL-SYSTEMS",
+        "AEROSPACE",
+        "DEFENSE"
+      ]
+    },
+    {
+      "name": "OBJECTIVE-C",
+      "primary_domains": [
+        "LEGACY-APPLE-SOFTWARE",
+        "MACOS-DEVELOPMENT",
+        "IOS-DEVELOPMENT"
+      ]
+    },
+    {
+      "name": "PERL",
+      "primary_domains": [
+        "TEXT-PROCESSING",
+        "SYSTEM-ADMINISTRATION",
+        "WEB-SCRIPTING",
+        "AUTOMATION"
+      ]
+    },
+    {
+      "name": "TCL",
+      "primary_domains": [
+        "TEST-AUTOMATION",
+        "EDA-AUTOMATION",
+        "APPLICATION-SCRIPTING"
+      ]
+    },
+    {
+      "name": "LISP",
+      "primary_domains": [
+        "ARTIFICIAL-INTELLIGENCE",
+        "SYMBOLIC-COMPUTATION",
+        "LANGUAGE-RESEARCH"
+      ]
+    },
+    {
+      "name": "PROLOG",
+      "primary_domains": [
+        "LOGIC-PROGRAMMING",
+        "ARTIFICIAL-INTELLIGENCE",
+        "KNOWLEDGE-REPRESENTATION"
+      ]
+    },
+    {
+      "name": "APL",
+      "primary_domains": [
+        "ARRAY-PROCESSING",
+        "MATHEMATICS",
+        "DATA-ANALYSIS"
+      ]
+    },
+    {
+      "name": "SNOBOL",
+      "primary_domains": [
+        "TEXT-PROCESSING",
+        "PATTERN-MATCHING",
+        "LANGUAGE-RESEARCH"
+      ]
+    },
+    {
+      "name": "SIMULA",
+      "primary_domains": [
+        "SIMULATION",
+        "OBJECT-ORIENTED-PROGRAMMING",
+        "COMPUTER-SCIENCE-RESEARCH"
+      ]
+    },
+    {
+      "name": "FORTH",
+      "primary_domains": [
+        "EMBEDDED-SYSTEMS",
+        "FIRMWARE",
+        "CONTROL-SYSTEMS",
+        "LOW-LEVEL-PROGRAMMING"
+      ]
+    },
+    {
+      "name": "MUMPS",
+      "primary_domains": [
+        "HEALTHCARE-INFORMATION-SYSTEMS",
+        "DATABASE-SYSTEMS",
+        "LEGACY-ENTERPRISE-SYSTEMS"
+      ]
+    }
+  ],
+  "historical_foundations": [
+    "ALGORITHMIC-PROGRAMMING",
+    "STRUCTURED-PROGRAMMING",
+    "PROCEDURAL-PROGRAMMING",
+    "OBJECT-ORIENTED-PROGRAMMING",
+    "FUNCTIONAL-PROGRAMMING",
+    "LOGIC-PROGRAMMING",
+    "ARRAY-PROGRAMMING",
+    "SYSTEMS-PROGRAMMING",
+    "SCIENTIFIC-PROGRAMMING",
+    "TIME-SHARING-SYSTEMS"
+  ],
+  "modern_relevance": [
+    "LEGACY-SYSTEM-MAINTENANCE",
+    "SYSTEM-MIGRATION",
+    "SOFTWARE-MODERNIZATION",
+    "BACKWARD-COMPATIBILITY",
+    "MAINFRAME-INTEGRATION",
+    "DATA-MIGRATION",
+    "ENTERPRISE-INTEGRATION",
+    "HISTORICAL-COMPUTING",
+    "COMPUTER-SCIENCE-EDUCATION"
+  ]
+}
