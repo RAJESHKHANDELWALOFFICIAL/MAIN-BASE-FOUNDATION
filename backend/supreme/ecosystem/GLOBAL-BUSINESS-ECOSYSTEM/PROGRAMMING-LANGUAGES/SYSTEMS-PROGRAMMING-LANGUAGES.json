@@ -1,0 +1,89 @@
+{
+  "display_name": "🏛️ SYSTEMS PROGRAMMING LANGUAGES 🏛️",
+  "category": "SYSTEMS-PROGRAMMING-LANGUAGES",
+  "purpose": "Programming languages used for operating systems, system software, runtimes, compilers, embedded systems, high-performance software and low-level computing.",
+  "languages": [
+    {
+      "name": "C",
+      "family": "C-FAMILY",
+      "primary_uses": [
+        "OPERATING-SYSTEMS",
+        "SYSTEM-SOFTWARE",
+        "EMBEDDED-SYSTEMS",
+        "DEVICE-DRIVERS",
+        "HIGH-PERFORMANCE-SOFTWARE"
+      ]
+    },
+    {
+      "name": "C++",
+      "family": "C-FAMILY",
+      "primary_uses": [
+        "SYSTEM-SOFTWARE",
+        "GAME-DEVELOPMENT",
+        "HIGH-PERFORMANCE-COMPUTING",
+        "GRAPHICS",
+        "EMBEDDED-SYSTEMS"
+      ]
+    },
+    {
+      "name": "Rust",
+      "family": "RUST",
+      "primary_uses": [
+        "SYSTEM-SOFTWARE",
+        "OPERATING-SYSTEMS",
+        "NETWORK-SERVICES",
+        "EMBEDDED-SYSTEMS",
+        "SECURITY-SENSITIVE-SOFTWARE"
+      ]
+    },
+    {
+      "name": "Zig",
+      "family": "ZIG",
+      "primary_uses": [
+        "SYSTEM-SOFTWARE",
+        "LOW-LEVEL-PROGRAMMING",
+        "EMBEDDED-SYSTEMS",
+        "TOOLCHAINS",
+        "HIGH-PERFORMANCE-SOFTWARE"
+      ]
+    },
+    {
+      "name": "D",
+      "family": "D",
+      "primary_uses": [
+        "SYSTEM-SOFTWARE",
+        "APPLICATION-SOFTWARE",
+        "HIGH-PERFORMANCE-SOFTWARE"
+      ]
+    },
+    {
+      "name": "Nim",
+      "family": "NIM",
+      "primary_uses": [
+        "SYSTEM-SOFTWARE",
+        "APPLICATION-SOFTWARE",
+        "EMBEDDED-SYSTEMS",
+        "HIGH-PERFORMANCE-SOFTWARE"
+      ]
+    },
+    {
+      "name": "Ada",
+      "family": "ADA",
+      "primary_uses": [
+        "SAFETY-CRITICAL-SYSTEMS",
+        "EMBEDDED-SYSTEMS",
+        "AEROSPACE-SYSTEMS",
+        "DEFENSE-SYSTEMS"
+      ]
+    },
+    {
+      "name": "Fortran",
+      "family": "FORTRAN",
+      "primary_uses": [
+        "SCIENTIFIC-COMPUTING",
+        "NUMERICAL-COMPUTING",
+        "HIGH-PERFORMANCE-COMPUTING"
+      ]
+    }
+  ]
+}
