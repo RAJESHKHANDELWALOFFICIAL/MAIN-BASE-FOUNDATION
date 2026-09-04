@@ -1,0 +1,160 @@
+{
+  "display_name": "🗄️ DATABASE-AND-QUERY-LANGUAGES 🗄️",
+  "category": "DATABASE-AND-QUERY-LANGUAGES",
+  "purpose": "Languages used to define, query, manipulate, analyze and manage structured, semi-structured, graph and specialized data systems.",
+  "languages": [
+    {
+      "name": "SQL",
+      "family": "RELATIONAL-QUERY-LANGUAGE",
+      "primary_uses": [
+        "DATABASE-QUERYING",
+        "DATA-DEFINITION",
+        "DATA-MANIPULATION",
+        "DATA-ANALYSIS",
+        "DATABASE-ADMINISTRATION"
+      ]
+    },
+    {
+      "name": "PL/SQL",
+      "family": "ORACLE-PROCEDURAL-SQL",
+      "primary_uses": [
+        "DATABASE-PROGRAMMING",
+        "STORED-PROCEDURES",
+        "DATABASE-AUTOMATION",
+        "TRANSACTION-PROCESSING"
+      ]
+    },
+    {
+      "name": "T-SQL",
+      "family": "MICROSOFT-SQL",
+      "primary_uses": [
+        "DATABASE-PROGRAMMING",
+        "DATA-MANAGEMENT",
+        "STORED-PROCEDURES",
+        "BUSINESS-INTELLIGENCE"
+      ]
+    },
+    {
+      "name": "Cypher",
+      "family": "GRAPH-QUERY-LANGUAGE",
+      "primary_uses": [
+        "GRAPH-DATABASES",
+        "RELATIONSHIP-ANALYSIS",
+        "GRAPH-DATA-MODELING",
+        "KNOWLEDGE-GRAPHS"
+      ]
+    },
+    {
+      "name": "SPARQL",
+      "family": "RDF-QUERY-LANGUAGE",
+      "primary_uses": [
+        "SEMANTIC-WEB",
+        "RDF-DATA",
+        "KNOWLEDGE-GRAPHS",
+        "LINKED-DATA"
+      ]
+    },
+    {
+      "name": "GraphQL",
+      "family": "API-QUERY-LANGUAGE",
+      "primary_uses": [
+        "API-DATA-QUERYING",
+        "API-SCHEMA-DEFINITION",
+        "CLIENT-DATA-REQUESTS",
+        "WEB-APPLICATIONS"
+      ]
+    },
+    {
+      "name": "XQuery",
+      "family": "XML-QUERY-LANGUAGE",
+      "primary_uses": [
+        "XML-DATA-QUERYING",
+        "XML-DATA-TRANSFORMATION",
+        "DOCUMENT-DATABASES"
+      ]
+    },
+    {
+      "name": "XPath",
+      "family": "XML-PATH-LANGUAGE",
+      "primary_uses": [
+        "XML-NODE-SELECTION",
+        "XML-DATA-ACCESS",
+        "DOCUMENT-PROCESSING"
+      ]
+    },
+    {
+      "name": "LINQ",
+      "family": "LANGUAGE-INTEGRATED-QUERY",
+      "primary_uses": [
+        "OBJECT-DATA-QUERYING",
+        "RELATIONAL-DATA",
+        "XML-DATA",
+        "COLLECTION-QUERYING"
+      ]
+    },
+    {
+      "name": "MQL",
+      "family": "DOCUMENT-DATABASE-QUERY-LANGUAGE",
+      "primary_uses": [
+        "DOCUMENT-DATABASES",
+        "DOCUMENT-QUERYING",
+        "DATA-MANIPULATION"
+      ]
+    },
+    {
+      "name": "CQL",
+      "family": "WIDE-COLUMN-DATABASE-QUERY-LANGUAGE",
+      "primary_uses": [
+        "DISTRIBUTED-DATABASES",
+        "WIDE-COLUMN-DATABASES",
+        "DATA-MANIPULATION"
+      ]
+    },
+    {
+      "name": "DAX",
+      "family": "DATA-ANALYSIS-LANGUAGE",
+      "primary_uses": [
+        "BUSINESS-INTELLIGENCE",
+        "DATA-MODELING",
+        "ANALYTICS",
+        "CALCULATED-MEASURES"
+      ]
+    },
+    {
+      "name": "MDX",
+      "family": "MULTIDIMENSIONAL-QUERY-LANGUAGE",
+      "primary_uses": [
+        "OLAP",
+        "MULTIDIMENSIONAL-DATA",
+        "BUSINESS-INTELLIGENCE"
+      ]
+    }
+  ],
+  "query_models": [
+    "RELATIONAL-DATABASE-QUERYING",
+    "GRAPH-DATABASE-QUERYING",
+    "DOCUMENT-DATABASE-QUERYING",
+    "RDF-AND-SEMANTIC-DATA-QUERYING",
+    "XML-DATA-QUERYING",
+    "MULTIDIMENSIONAL-DATA-QUERYING",
+    "API-DATA-QUERYING",
+    "ANALYTICAL-DATA-QUERYING"
+  ],
+  "core_capabilities": [
+    "DATA-DEFINITION",
+    "DATA-QUERYING",
+    "DATA-MANIPULATION",
+    "DATA-ANALYSIS",
+    "TRANSACTION-MANAGEMENT",
+    "STORED-PROCEDURES",
+    "VIEWS",
+    "INDEXING",
+    "AGGREGATION",
+    "JOINING",
+    "FILTERING",
+    "DATA-MODELING",
+    "GRAPH-TRAVERSAL",
+    "SEMANTIC-QUERYING",
+    "BUSINESS-INTELLIGENCE"
+  ]
+}
