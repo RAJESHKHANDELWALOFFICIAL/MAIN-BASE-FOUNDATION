@@ -1,0 +1,173 @@
+{
+  "display_name": "☁️ CLOUD-AND-AUTOMATION-PROGRAMMING-LANGUAGES ☁️",
+  "category": "CLOUD-AND-AUTOMATION-PROGRAMMING-LANGUAGES",
+  "purpose": "Programming and scripting languages used to build, operate, automate, provision, configure, monitor and manage cloud infrastructure, distributed services and deployment workflows.",
+  "languages": [
+    {
+      "name": "PYTHON",
+      "primary_uses": [
+        "CLOUD-AUTOMATION",
+        "INFRASTRUCTURE-AUTOMATION",
+        "DEVOPS",
+        "CLOUD-APIS",
+        "SERVERLESS-FUNCTIONS",
+        "MONITORING-AUTOMATION"
+      ]
+    },
+    {
+      "name": "GO",
+      "primary_uses": [
+        "CLOUD-SERVICES",
+        "CONTAINER-TOOLS",
+        "CLOUD-INFRASTRUCTURE",
+        "NETWORK-SERVICES",
+        "DEVOPS-TOOLS"
+      ]
+    },
+    {
+      "name": "JAVASCRIPT",
+      "primary_uses": [
+        "CLOUD-AUTOMATION",
+        "SERVERLESS-FUNCTIONS",
+        "CLOUD-APIS",
+        "DEVOPS-SCRIPTS"
+      ]
+    },
+    {
+      "name": "TYPESCRIPT",
+      "primary_uses": [
+        "CLOUD-AUTOMATION",
+        "INFRASTRUCTURE-AS-CODE",
+        "SERVERLESS-FUNCTIONS",
+        "CLOUD-APPLICATIONS"
+      ]
+    },
+    {
+      "name": "POWERSHELL",
+      "primary_uses": [
+        "CLOUD-ADMINISTRATION",
+        "WINDOWS-AUTOMATION",
+        "AZURE-AUTOMATION",
+        "SYSTEM-ADMINISTRATION",
+        "DEVOPS"
+      ]
+    },
+    {
+      "name": "BASH",
+      "primary_uses": [
+        "LINUX-AUTOMATION",
+        "SERVER-AUTOMATION",
+        "CLOUD-DEPLOYMENT",
+        "DEVOPS",
+        "CI-CD"
+      ]
+    },
+    {
+      "name": "RUBY",
+      "primary_uses": [
+        "INFRASTRUCTURE-AUTOMATION",
+        "CONFIGURATION-MANAGEMENT",
+        "DEVOPS"
+      ]
+    },
+    {
+      "name": "JAVA",
+      "primary_uses": [
+        "CLOUD-APPLICATIONS",
+        "ENTERPRISE-CLOUD-SERVICES",
+        "SERVERLESS-FUNCTIONS",
+        "DISTRIBUTED-SYSTEMS"
+      ]
+    },
+    {
+      "name": "C-SHARP",
+      "primary_uses": [
+        "CLOUD-APPLICATIONS",
+        "SERVERLESS-FUNCTIONS",
+        "AZURE-SERVICES",
+        "ENTERPRISE-CLOUD-SYSTEMS"
+      ]
+    },
+    {
+      "name": "RUST",
+      "primary_uses": [
+        "CLOUD-INFRASTRUCTURE",
+        "HIGH-PERFORMANCE-SERVICES",
+        "SECURITY-SENSITIVE-SERVICES",
+        "CLOUD-TOOLS"
+      ]
+    }
+  ],
+  "automation_ecosystems": [
+    {
+      "name": "INFRASTRUCTURE-AS-CODE",
+      "technologies": [
+        "TERRAFORM",
+        "OPEN-TOFU",
+        "PULUMI",
+        "AWS-CLOUDFORMATION",
+        "AZURE-BICEP"
+      ]
+    },
+    {
+      "name": "CONFIGURATION-MANAGEMENT",
+      "technologies": [
+        "ANSIBLE",
+        "CHEF",
+        "PUPPET",
+        "SALT"
+      ]
+    },
+    {
+      "name": "CONTAINER-AUTOMATION",
+      "technologies": [
+        "DOCKER",
+        "KUBERNETES",
+        "HELM"
+      ]
+    },
+    {
+      "name": "CI-CD-AUTOMATION",
+      "technologies": [
+        "GITHUB-ACTIONS",
+        "GITLAB-CI-CD",
+        "JENKINS",
+        "AZURE-DEVOPS",
+        "CIRCLECI"
+      ]
+    }
+  ],
+  "cloud_domains": [
+    "CLOUD-INFRASTRUCTURE",
+    "CLOUD-APPLICATIONS",
+    "SERVERLESS-COMPUTING",
+    "CONTAINER-ORCHESTRATION",
+    "INFRASTRUCTURE-AS-CODE",
+    "CONFIGURATION-MANAGEMENT",
+    "CI-CD",
+    "CLOUD-MONITORING",
+    "CLOUD-SECURITY",
+    "CLOUD-NETWORKING",
+    "CLOUD-DATABASES",
+    "CLOUD-STORAGE",
+    "CLOUD-API-INTEGRATION",
+    "DISASTER-RECOVERY",
+    "CLOUD-COST-AUTOMATION"
+  ],
+  "core_capabilities": [
+    "INFRASTRUCTURE-PROVISIONING",
+    "SERVER-PROVISIONING",
+    "CLOUD-RESOURCE-MANAGEMENT",
+    "DEPLOYMENT-AUTOMATION",
+    "CONFIGURATION-AUTOMATION",
+    "CI-CD-AUTOMATION",
+    "CONTAINER-AUTOMATION",
+    "MONITORING-AUTOMATION",
+    "BACKUP-AUTOMATION",
+    "SCALING-AUTOMATION",
+    "SECURITY-AUTOMATION",
+    "CLOUD-API-AUTOMATION",
+    "COST-MANAGEMENT-AUTOMATION",
+    "DISASTER-RECOVERY-AUTOMATION"
+  ]
+}
