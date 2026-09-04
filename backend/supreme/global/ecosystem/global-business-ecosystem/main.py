@@ -5,23 +5,29 @@ Runtime Entry Point
 
 from fastapi import FastAPI
 
+from api.routes import router as api_router
+
+from config.settings import settings
+
+
 app = FastAPI(
-    title="Global Business Ecosystem",
-    version="1.0.0"
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    debug=settings.DEBUG
+)
+
+
+app.include_router(
+    api_router,
+    prefix="/api"
 )
 
 
 @app.get("/")
 def root():
     return {
-        "system": "global-business-ecosystem",
-        "status": "active",
-        "runtime": "backend"
-    }
-
-
-@app.get("/health")
-def health():
-    return {
-        "status": "healthy"
+        "system": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "environment": settings.ENVIRONMENT,
+        "status": "active"
     }
