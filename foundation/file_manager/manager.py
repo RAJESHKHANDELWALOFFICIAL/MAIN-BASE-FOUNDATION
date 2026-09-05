@@ -31,7 +31,10 @@ class FileManager:
     def _resolve(self, path: str) -> Path:
         target = (self.root / path).resolve()
 
-        if target != self.root and self.root not in target.parents:
+        if (
+            target != self.root
+            and self.root not in target.parents
+        ):
             raise PermissionError(
                 "Path is outside MAIN-BASE-FOUNDATION."
             )
@@ -212,15 +215,16 @@ class FileManager:
     ) -> str:
 
         entry = registry.get(entity_id)
+        old_path = entry.path
 
         self._authorize(
             subject_id,
             "rename",
-            entry.path,
+            old_path,
         )
 
         source_path = self._resolve(
-            entry.path
+            old_path
         )
 
         destination_path = self._resolve(
@@ -229,7 +233,7 @@ class FileManager:
 
         if not source_path.exists():
             raise FileNotFoundError(
-                f"Source does not exist: {entry.path}"
+                f"Source does not exist: {old_path}"
             )
 
         if destination_path.exists():
@@ -264,8 +268,7 @@ class FileManager:
                 subject_id=subject_id,
                 status="success",
                 details=(
-                    f"Renamed from "
-                    f"{entry.path}."
+                    f"Renamed from {old_path}."
                 ),
             )
 
@@ -292,15 +295,16 @@ class FileManager:
     ) -> str:
 
         entry = registry.get(entity_id)
+        old_path = entry.path
 
         self._authorize(
             subject_id,
             "move",
-            entry.path,
+            old_path,
         )
 
         source_path = self._resolve(
-            entry.path
+            old_path
         )
 
         destination_path = self._resolve(
@@ -309,7 +313,7 @@ class FileManager:
 
         if not source_path.exists():
             raise FileNotFoundError(
-                f"Source does not exist: {entry.path}"
+                f"Source does not exist: {old_path}"
             )
 
         if destination_path.exists():
@@ -344,7 +348,9 @@ class FileManager:
                 path=relative_path,
                 subject_id=subject_id,
                 status="success",
-                details="Entity moved.",
+                details=(
+                    f"Moved from {old_path}."
+                ),
             )
 
             return relative_path
@@ -353,6 +359,106 @@ class FileManager:
 
             self._audit(
                 operation="move",
+                entity_id=entity_id,
+                path=destination,
+                subject_id=subject_id,
+                status="failed",
+                details=str(error),
+            )
+
+            raise
+
+    def copy(
+        self,
+        source_entity_id: str,
+        destination: str,
+        entity_id: str,
+        identity_id: str,
+        subject_id: str,
+    ) -> str:
+
+        source_entry = registry.get(
+            source_entity_id
+        )
+
+        self._authorize(
+            subject_id,
+            "copy",
+            source_entry.path,
+        )
+
+        source_path = self._resolve(
+            source_entry.path
+        )
+
+        destination_path = self._resolve(
+            destination
+        )
+
+        if not source_path.exists():
+            raise FileNotFoundError(
+                f"Source does not exist: "
+                f"{source_entry.path}"
+            )
+
+        if destination_path.exists():
+            raise FileExistsError(
+                f"Destination already exists: "
+                f"{destination}"
+            )
+
+        try:
+            destination_path.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+
+            if source_path.is_dir():
+                shutil.copytree(
+                    source_path,
+                    destination_path,
+                )
+                entity_type = "directory"
+            else:
+                shutil.copy2(
+                    source_path,
+                    destination_path,
+                )
+                entity_type = "file"
+
+            relative_path = str(
+                destination_path.relative_to(
+                    self.root
+                )
+            )
+
+            registry.register(
+                RegistryEntry(
+                    entity_id=entity_id,
+                    entity_type=entity_type,
+                    path=relative_path,
+                    identity_id=identity_id,
+                )
+            )
+
+            self._audit(
+                operation="copy",
+                entity_id=entity_id,
+                path=relative_path,
+                subject_id=subject_id,
+                status="success",
+                details=(
+                    f"Copied from "
+                    f"{source_entry.path}."
+                ),
+            )
+
+            return relative_path
+
+        except Exception as error:
+
+            self._audit(
+                operation="copy",
                 entity_id=entity_id,
                 path=destination,
                 subject_id=subject_id,
