@@ -2,16 +2,20 @@
 MAIN BASE FOUNDATION
 Central File Manager
 
-Filesystem operations connected to the
-Central Foundation Registry.
+Central filesystem operations with security,
+registry and audit integration.
 """
 
 from pathlib import Path
 import shutil
 
+from foundation.audit.audit import audit_log
 from foundation.registry.registry import (
     RegistryEntry,
     registry,
+)
+from foundation.security.access import (
+    access_controller,
 )
 
 
@@ -34,12 +38,51 @@ class FileManager:
 
         return target
 
+    def _authorize(
+        self,
+        subject_id: str,
+        operation: str,
+        path: str,
+    ) -> None:
+
+        access_controller.authorize_path(
+            subject_id=subject_id,
+            operation=operation,
+            path=path,
+        )
+
+    def _audit(
+        self,
+        operation: str,
+        entity_id: str,
+        path: str,
+        subject_id: str,
+        status: str,
+        details: str = "",
+    ) -> None:
+
+        audit_log.record(
+            operation=operation,
+            entity_id=entity_id,
+            path=path,
+            subject_id=subject_id,
+            status=status,
+            details=details,
+        )
+
     def create_folder(
         self,
         path: str,
         entity_id: str,
         identity_id: str,
+        subject_id: str,
     ) -> str:
+
+        self._authorize(
+            subject_id,
+            "create",
+            path,
+        )
 
         target = self._resolve(path)
 
@@ -48,33 +91,63 @@ class FileManager:
                 f"Item already exists: {path}"
             )
 
-        target.mkdir(
-            parents=True,
-            exist_ok=False,
-        )
-
-        relative_path = str(
-            target.relative_to(self.root)
-        )
-
-        registry.register(
-            RegistryEntry(
-                entity_id=entity_id,
-                entity_type="directory",
-                path=relative_path,
-                identity_id=identity_id,
+        try:
+            target.mkdir(
+                parents=True,
+                exist_ok=False,
             )
-        )
 
-        return relative_path
+            relative_path = str(
+                target.relative_to(self.root)
+            )
+
+            registry.register(
+                RegistryEntry(
+                    entity_id=entity_id,
+                    entity_type="directory",
+                    path=relative_path,
+                    identity_id=identity_id,
+                )
+            )
+
+            self._audit(
+                operation="create",
+                entity_id=entity_id,
+                path=relative_path,
+                subject_id=subject_id,
+                status="success",
+                details="Directory created.",
+            )
+
+            return relative_path
+
+        except Exception as error:
+
+            self._audit(
+                operation="create",
+                entity_id=entity_id,
+                path=path,
+                subject_id=subject_id,
+                status="failed",
+                details=str(error),
+            )
+
+            raise
 
     def create_file(
         self,
         path: str,
         entity_id: str,
         identity_id: str,
+        subject_id: str,
         content: str = "",
     ) -> str:
+
+        self._authorize(
+            subject_id,
+            "create",
+            path,
+        )
 
         target = self._resolve(path)
 
@@ -83,38 +156,68 @@ class FileManager:
                 f"Item already exists: {path}"
             )
 
-        target.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        target.write_text(
-            content,
-            encoding="utf-8",
-        )
-
-        relative_path = str(
-            target.relative_to(self.root)
-        )
-
-        registry.register(
-            RegistryEntry(
-                entity_id=entity_id,
-                entity_type="file",
-                path=relative_path,
-                identity_id=identity_id,
+        try:
+            target.parent.mkdir(
+                parents=True,
+                exist_ok=True,
             )
-        )
 
-        return relative_path
+            target.write_text(
+                content,
+                encoding="utf-8",
+            )
+
+            relative_path = str(
+                target.relative_to(self.root)
+            )
+
+            registry.register(
+                RegistryEntry(
+                    entity_id=entity_id,
+                    entity_type="file",
+                    path=relative_path,
+                    identity_id=identity_id,
+                )
+            )
+
+            self._audit(
+                operation="create",
+                entity_id=entity_id,
+                path=relative_path,
+                subject_id=subject_id,
+                status="success",
+                details="File created.",
+            )
+
+            return relative_path
+
+        except Exception as error:
+
+            self._audit(
+                operation="create",
+                entity_id=entity_id,
+                path=path,
+                subject_id=subject_id,
+                status="failed",
+                details=str(error),
+            )
+
+            raise
 
     def rename(
         self,
         entity_id: str,
         destination: str,
+        subject_id: str,
     ) -> str:
 
         entry = registry.get(entity_id)
+
+        self._authorize(
+            subject_id,
+            "rename",
+            entry.path,
+        )
 
         source_path = self._resolve(
             entry.path
@@ -127,104 +230,6 @@ class FileManager:
         if not source_path.exists():
             raise FileNotFoundError(
                 f"Source does not exist: {entry.path}"
-            )
-
-        if destination_path.exists():
-            raise FileExistsError(
-                f"Destination already exists: {destination}"
-            )
-
-        destination_path.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        source_path.rename(
-            destination_path
-        )
-
-        relative_path = str(
-            destination_path.relative_to(self.root)
-        )
-
-        registry.update_path(
-            entity_id,
-            relative_path,
-        )
-
-        return relative_path
-
-    def move(
-        self,
-        entity_id: str,
-        destination: str,
-    ) -> str:
-
-        entry = registry.get(entity_id)
-
-        source_path = self._resolve(
-            entry.path
-        )
-
-        destination_path = self._resolve(
-            destination
-        )
-
-        if not source_path.exists():
-            raise FileNotFoundError(
-                f"Source does not exist: {entry.path}"
-            )
-
-        if destination_path.exists():
-            raise FileExistsError(
-                f"Destination already exists: {destination}"
-            )
-
-        destination_path.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        shutil.move(
-            str(source_path),
-            str(destination_path),
-        )
-
-        relative_path = str(
-            destination_path.relative_to(self.root)
-        )
-
-        registry.update_path(
-            entity_id,
-            relative_path,
-        )
-
-        return relative_path
-
-    def copy(
-        self,
-        source_entity_id: str,
-        destination: str,
-        entity_id: str,
-        identity_id: str,
-    ) -> str:
-
-        source_entry = registry.get(
-            source_entity_id
-        )
-
-        source_path = self._resolve(
-            source_entry.path
-        )
-
-        destination_path = self._resolve(
-            destination
-        )
-
-        if not source_path.exists():
-            raise FileNotFoundError(
-                f"Source does not exist: "
-                f"{source_entry.path}"
             )
 
         if destination_path.exists():
@@ -233,45 +238,143 @@ class FileManager:
                 f"{destination}"
             )
 
-        destination_path.parent.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        if source_path.is_dir():
-            shutil.copytree(
-                source_path,
-                destination_path,
+        try:
+            destination_path.parent.mkdir(
+                parents=True,
+                exist_ok=True,
             )
-            entity_type = "directory"
-        else:
-            shutil.copy2(
-                source_path,
-                destination_path,
+
+            source_path.rename(
+                destination_path
             )
-            entity_type = "file"
 
-        relative_path = str(
-            destination_path.relative_to(self.root)
-        )
+            relative_path = str(
+                destination_path.relative_to(self.root)
+            )
 
-        registry.register(
-            RegistryEntry(
+            registry.update_path(
+                entity_id,
+                relative_path,
+            )
+
+            self._audit(
+                operation="rename",
                 entity_id=entity_id,
-                entity_type=entity_type,
                 path=relative_path,
-                identity_id=identity_id,
+                subject_id=subject_id,
+                status="success",
+                details=(
+                    f"Renamed from "
+                    f"{entry.path}."
+                ),
             )
+
+            return relative_path
+
+        except Exception as error:
+
+            self._audit(
+                operation="rename",
+                entity_id=entity_id,
+                path=destination,
+                subject_id=subject_id,
+                status="failed",
+                details=str(error),
+            )
+
+            raise
+
+    def move(
+        self,
+        entity_id: str,
+        destination: str,
+        subject_id: str,
+    ) -> str:
+
+        entry = registry.get(entity_id)
+
+        self._authorize(
+            subject_id,
+            "move",
+            entry.path,
         )
 
-        return relative_path
+        source_path = self._resolve(
+            entry.path
+        )
+
+        destination_path = self._resolve(
+            destination
+        )
+
+        if not source_path.exists():
+            raise FileNotFoundError(
+                f"Source does not exist: {entry.path}"
+            )
+
+        if destination_path.exists():
+            raise FileExistsError(
+                f"Destination already exists: "
+                f"{destination}"
+            )
+
+        try:
+            destination_path.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+
+            shutil.move(
+                str(source_path),
+                str(destination_path),
+            )
+
+            relative_path = str(
+                destination_path.relative_to(self.root)
+            )
+
+            registry.update_path(
+                entity_id,
+                relative_path,
+            )
+
+            self._audit(
+                operation="move",
+                entity_id=entity_id,
+                path=relative_path,
+                subject_id=subject_id,
+                status="success",
+                details="Entity moved.",
+            )
+
+            return relative_path
+
+        except Exception as error:
+
+            self._audit(
+                operation="move",
+                entity_id=entity_id,
+                path=destination,
+                subject_id=subject_id,
+                status="failed",
+                details=str(error),
+            )
+
+            raise
 
     def delete(
         self,
         entity_id: str,
+        subject_id: str,
     ) -> bool:
 
         entry = registry.get(entity_id)
+
+        self._authorize(
+            subject_id,
+            "delete",
+            entry.path,
+        )
 
         target = self._resolve(
             entry.path
@@ -285,24 +388,55 @@ class FileManager:
 
         if not target.exists():
             raise FileNotFoundError(
-                f"Item does not exist: {entry.path}"
+                f"Item does not exist: "
+                f"{entry.path}"
             )
 
-        if target.is_dir():
-            shutil.rmtree(target)
-        else:
-            target.unlink()
+        try:
+            if target.is_dir():
+                shutil.rmtree(target)
+            else:
+                target.unlink()
 
-        registry.remove(
-            entity_id
-        )
+            registry.remove(
+                entity_id
+            )
 
-        return True
+            self._audit(
+                operation="delete",
+                entity_id=entity_id,
+                path=entry.path,
+                subject_id=subject_id,
+                status="success",
+                details="Entity deleted.",
+            )
+
+            return True
+
+        except Exception as error:
+
+            self._audit(
+                operation="delete",
+                entity_id=entity_id,
+                path=entry.path,
+                subject_id=subject_id,
+                status="failed",
+                details=str(error),
+            )
+
+            raise
 
     def list_directory(
         self,
         path: str = ".",
+        subject_id: str = "",
     ) -> list[dict]:
+
+        self._authorize(
+            subject_id,
+            "list",
+            path,
+        )
 
         target = self._resolve(path)
 
