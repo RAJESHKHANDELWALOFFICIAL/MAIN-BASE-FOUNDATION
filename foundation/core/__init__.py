@@ -13,9 +13,14 @@ from foundation.core.orchestrator import (
     orchestrator,
 )
 
+from foundation.core.bootstrap import (
+    FoundationBootstrap,
+)
+
 __all__ = [
     "Foundation",
     "foundation",
     "FoundationOrchestrator",
     "orchestrator",
+    "FoundationBootstrap",
 ]
