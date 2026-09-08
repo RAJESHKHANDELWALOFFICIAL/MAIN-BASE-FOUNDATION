@@ -17,10 +17,15 @@ from foundation.core.bootstrap import (
     FoundationBootstrap,
 )
 
+from foundation.core.service import (
+    FoundationService,
+)
+
 __all__ = [
     "Foundation",
     "foundation",
     "FoundationOrchestrator",
     "orchestrator",
     "FoundationBootstrap",
+    "FoundationService",
 ]
