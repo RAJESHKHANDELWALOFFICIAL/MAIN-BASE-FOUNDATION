@@ -1,275 +1,155 @@
 """
 MAIN BASE FOUNDATION
-Central Synchronization Engine
+Filesystem Synchronization Engine
 
-Synchronizes the actual filesystem state with
-the persistent Foundation Registry.
+Synchronizes the real filesystem with the Foundation Registry
+while preserving stable entity identities.
 """
 
-from datetime import datetime, timezone
 from pathlib import Path
 
-from foundation.registry.registry import (
-    RegistryEntry,
-    registry,
-)
+from foundation.registry.registry import registry
 
 
 class SyncEngine:
-    """
-    Synchronizes filesystem state with the Foundation Registry.
-
-    The filesystem is the source of truth for physical existence.
-    Registry entity IDs remain stable whenever an existing registered
-    entity can be matched to its current filesystem path.
-    """
 
     def __init__(self, root: str):
         self.root = Path(root).resolve()
 
     def _resolve(self, path: str) -> Path:
-        """Resolve a path while enforcing the foundation root."""
+        candidate = Path(path)
 
-        target = (self.root / path).resolve()
+        if not candidate.is_absolute():
+            candidate = self.root / candidate
 
-        if (
-            target != self.root
-            and self.root not in target.parents
-        ):
-            raise PermissionError(
-                "Path is outside MAIN-BASE-FOUNDATION."
+        resolved = candidate.resolve()
+
+        try:
+            resolved.relative_to(self.root)
+        except ValueError:
+            raise ValueError(
+                f"Path is outside foundation root: {path}"
             )
 
-        return target
+        return resolved
 
     def _relative(self, path: Path) -> str:
-        """Return a normalized path relative to foundation root."""
+        return path.relative_to(self.root).as_posix()
 
-        return str(
-            path.relative_to(self.root)
-        ).replace("\\", "/")
+    def scan_filesystem(self) -> dict[str, str]:
+        """
+        Return filesystem items indexed by relative path.
+        """
 
-    def scan_filesystem(self) -> list[dict]:
-        """Scan all filesystem items below the foundation root."""
+        items = {}
 
-        results = []
+        for path in self.root.rglob("*"):
 
-        for item in self.root.rglob("*"):
-            if not item.exists():
+            if not path.exists():
                 continue
 
-            results.append(
-                {
-                    "path": self._relative(item),
-                    "type": (
-                        "directory"
-                        if item.is_dir()
-                        else "file"
-                    ),
-                }
-            )
+            if ".git" in path.parts:
+                continue
 
-        return sorted(
-            results,
-            key=lambda item: item["path"].lower(),
-        )
+            relative = self._relative(path)
 
-    def _registry_entries(self) -> list[RegistryEntry]:
-        """Return all persistent registry entries."""
+            if path.is_dir():
+                items[relative] = "folder"
+            elif path.is_file():
+                items[relative] = "file"
 
-        entries = []
-
-        for item in registry.list_all():
-            entries.append(
-                RegistryEntry(
-                    entity_id=item["entity_id"],
-                    entity_type=item["entity_type"],
-                    path=item["path"],
-                    identity_id=item["identity_id"],
-                    status=item["status"],
-                    created_at=item["created_at"],
-                    updated_at=item["updated_at"],
-                )
-            )
-
-        return entries
-
-    def _create_registry_entry(
-        self,
-        path: str,
-        entity_type: str,
-    ) -> RegistryEntry:
-        """Create a new registry entry for an unregistered item."""
-
-        entity_id = path
-        identity_id = path
-
-        existing = registry.get(entity_id)
-
-        if existing is not None:
-            entity_id = f"{entity_type}:{path}"
-            identity_id = entity_id
-
-        entry = RegistryEntry(
-            entity_id=entity_id,
-            entity_type=entity_type,
-            path=path,
-            identity_id=identity_id,
-        )
-
-        registry.register(entry)
-
-        return entry
+        return items
 
     def synchronize(self) -> dict:
         """
-        Synchronize filesystem and persistent registry.
+        Synchronize filesystem state with the registry.
 
-        New filesystem items are registered.
-
-        Missing filesystem items are removed from the registry.
-
-        Existing registered items retain their entity IDs while
-        their metadata is synchronized.
+        Existing registry entries retain their entity IDs.
+        Filesystem paths are treated as the current location
+        of those entities.
         """
 
-        filesystem_items = self.scan_filesystem()
+        filesystem = self.scan_filesystem()
 
-        filesystem_by_path = {
-            item["path"]: item
-            for item in filesystem_items
+        entries = registry.list_all()
+
+        registry_by_path = {
+            entry["path"]: entry
+            for entry in entries
+            if entry.get("path")
         }
 
-        registered_entries = self._registry_entries()
+        registered_paths = set(registry_by_path.keys())
+        filesystem_paths = set(filesystem.keys())
 
-        registered_by_path = {
-            entry.path: entry
-            for entry in registered_entries
-        }
+        registered = 0
+        updated = 0
+        removed = 0
 
-        created = []
-        removed = []
-        updated = []
-        unchanged = []
+        # --------------------------------------------------
+        # REGISTER NEW FILESYSTEM ITEMS
+        # --------------------------------------------------
 
-        # ---------------------------------------------------------
-        # 1. REGISTER NEW FILESYSTEM ITEMS
-        # ---------------------------------------------------------
+        for path in sorted(
+            filesystem_paths - registered_paths
+        ):
+            entity_type = filesystem[path]
 
-        for path, item in filesystem_by_path.items():
+            entity_id = (
+                f"filesystem:{path}"
+            )
 
-            if path not in registered_by_path:
+            registry.register(
+                entity_id=entity_id,
+                entity_type=entity_type,
+                path=path,
+                identity_id=entity_id,
+            )
 
-                entry = self._create_registry_entry(
-                    path=path,
-                    entity_type=item["type"],
-                )
+            registered += 1
 
-                created.append(
-                    {
-                        "entity_id": entry.entity_id,
-                        "path": entry.path,
-                        "type": entry.entity_type,
-                    }
-                )
+        # --------------------------------------------------
+        # UPDATE EXISTING ITEMS
+        # --------------------------------------------------
 
-        # ---------------------------------------------------------
-        # 2. REMOVE REGISTRY ITEMS THAT NO LONGER EXIST
-        # ---------------------------------------------------------
+        for path in sorted(
+            filesystem_paths & registered_paths
+        ):
+            entry = registry_by_path[path]
 
-        for entry in registered_entries:
-
-            target = self._resolve(entry.path)
-
-            if not target.exists():
-
-                try:
-                    registry.remove(
-                        entry.entity_id
-                    )
-
-                    removed.append(
-                        {
-                            "entity_id": entry.entity_id,
-                            "path": entry.path,
-                        }
-                    )
-
-                except KeyError:
-                    pass
-
-        # ---------------------------------------------------------
-        # 3. UPDATE EXISTING REGISTRY METADATA
-        # ---------------------------------------------------------
-
-        for path, item in filesystem_by_path.items():
-
-            entry = registry.find_by_path(path)
-
-            if entry is None:
-                continue
-
-            changes = {}
-
-            if entry.entity_type != item["type"]:
-                changes["entity_type"] = item["type"]
-
-            if entry.status != "active":
-                changes["status"] = "active"
-
-            if changes:
+            if entry.get("status") != "active":
                 registry.update(
-                    entry.entity_id,
-                    **changes,
+                    entry["entity_id"],
+                    status="active",
                 )
 
-                updated.append(
-                    {
-                        "entity_id": entry.entity_id,
-                        "path": path,
-                        "changes": changes,
-                    }
-                )
+                updated += 1
 
-            else:
-                unchanged.append(
-                    {
-                        "entity_id": entry.entity_id,
-                        "path": path,
-                    }
+        # --------------------------------------------------
+        # REMOVE MISSING ITEMS
+        # --------------------------------------------------
+
+        for path in sorted(
+            registered_paths - filesystem_paths
+        ):
+            entry = registry_by_path[path]
+
+            try:
+                registry.remove(
+                    entry["entity_id"]
                 )
+                removed += 1
+
+            except KeyError:
+                pass
 
         return {
-            "success": True,
-            "created": created,
-            "removed": removed,
-            "updated": updated,
-            "unchanged": unchanged,
-            "total_filesystem_items": len(
-                filesystem_items
-            ),
-            "total_registry_items": registry.count(),
-        }
-
-    def status(self) -> dict:
-        """Return synchronization status."""
-
-        filesystem_count = len(
-            self.scan_filesystem()
-        )
-
-        registry_count = registry.count()
-
-        return {
-            "engine": "FOUNDATION SYNCHRONIZATION",
-            "status": "READY",
             "root": str(self.root),
-            "filesystem_items": filesystem_count,
-            "registry_items": registry_count,
-            "in_sync": (
-                filesystem_count
-                == registry_count
-            ),
+            "filesystem_items": len(filesystem),
+            "registered": registered,
+            "updated": updated,
+            "removed": removed,
+            "status": "SYNCHRONIZED",
         }
 
 
