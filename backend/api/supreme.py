@@ -9,7 +9,7 @@ router = APIRouter(
 )
 
 controller = SupremeController()
-
+controller.initialize()
 
 @router.get("/")
 def get_owner():
