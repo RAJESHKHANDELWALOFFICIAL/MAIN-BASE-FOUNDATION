@@ -3,10 +3,12 @@ MAIN BASE FOUNDATION
 Central Integration and Orchestration Layer
 
 Coordinates the Foundation Core, Identity, Registry,
-File Manager, Synchronization, Security and Audit systems.
+File Manager, Synchronization, Security, Dependencies,
+Audit and Integrity systems.
 """
 
 from foundation.audit.audit import audit_log
+from foundation.core.integrity import integrity
 from foundation.dependencies.index import dependency_index
 from foundation.identity.identity import identity_manager
 from foundation.registry.registry import registry
@@ -26,6 +28,10 @@ class FoundationOrchestrator:
         self.file_manager = file_manager
         self.sync_engine = sync_engine
 
+    # ==========================================================
+    # CONNECTIONS
+    # ==========================================================
+
     def set_file_manager(
         self,
         file_manager,
@@ -37,6 +43,10 @@ class FoundationOrchestrator:
         sync_engine,
     ) -> None:
         self.sync_engine = sync_engine
+
+    # ==========================================================
+    # STATUS
+    # ==========================================================
 
     def status(self) -> dict:
         """
@@ -51,6 +61,7 @@ class FoundationOrchestrator:
             "dependencies": "active",
             "security": "active",
             "audit": "active",
+            "integrity": "active",
             "file_manager": (
                 "connected"
                 if self.file_manager is not None
@@ -63,6 +74,10 @@ class FoundationOrchestrator:
             ),
         }
 
+    # ==========================================================
+    # IDENTITY
+    # ==========================================================
+
     def register_identity(
         self,
         identity,
@@ -71,6 +86,28 @@ class FoundationOrchestrator:
             identity
         )
 
+    def get_identity(
+        self,
+        entity_id: str,
+    ):
+        return identity_manager.get(
+            entity_id
+        )
+
+    def update_identity(
+        self,
+        entity_id: str,
+        **changes,
+    ):
+        return identity_manager.update(
+            entity_id,
+            **changes,
+        )
+
+    # ==========================================================
+    # REGISTRY
+    # ==========================================================
+
     def register_entity(
         self,
         entry,
@@ -78,6 +115,21 @@ class FoundationOrchestrator:
         return registry.register(
             entry
         )
+
+    def get_entity(
+        self,
+        entity_id: str,
+    ):
+        return registry.require(
+            entity_id
+        )
+
+    def list_entities(self) -> list[dict]:
+        return registry.list_all()
+
+    # ==========================================================
+    # DEPENDENCIES
+    # ==========================================================
 
     def add_dependency(
         self,
@@ -91,6 +143,44 @@ class FoundationOrchestrator:
             relationship=relationship,
         )
 
+    def get_dependencies(
+        self,
+        source_id: str,
+    ):
+        return dependency_index.get_dependencies(
+            source_id
+        )
+
+    def get_dependents(
+        self,
+        target_id: str,
+    ):
+        return dependency_index.get_dependents(
+            target_id
+        )
+
+    def get_relationships(
+        self,
+        entity_id: str,
+    ):
+        return dependency_index.get_entity_relationships(
+            entity_id
+        )
+
+    # ==========================================================
+    # SECURITY
+    # ==========================================================
+
+    def set_permissions(
+        self,
+        subject_id: str,
+        operations,
+    ) -> None:
+        access_controller.set_permissions(
+            subject_id,
+            operations,
+        )
+
     def authorize(
         self,
         subject_id: str,
@@ -102,6 +192,10 @@ class FoundationOrchestrator:
             operation=operation,
             path=path,
         )
+
+    # ==========================================================
+    # AUDIT
+    # ==========================================================
 
     def audit(
         self,
@@ -121,9 +215,31 @@ class FoundationOrchestrator:
             details=details,
         )
 
+    # ==========================================================
+    # INTEGRITY
+    # ==========================================================
+
+    def integrity_check(self) -> dict:
+        """
+        Run the central Foundation integrity check.
+        """
+
+        return integrity.check()
+
+    def registry_integrity(self) -> dict:
+        return integrity.registry_check()
+
+    def dependency_integrity(self) -> dict:
+        return integrity.dependency_check()
+
+    # ==========================================================
+    # SYNCHRONIZATION
+    # ==========================================================
+
     def synchronize(self) -> dict:
         """
-        Synchronize the filesystem with the registry.
+        Synchronize the filesystem with the registry
+        and then return the resulting integrity state.
         """
 
         if self.sync_engine is None:
@@ -131,7 +247,18 @@ class FoundationOrchestrator:
                 "Sync engine is not connected."
             )
 
-        return self.sync_engine.synchronize()
+        synchronization = (
+            self.sync_engine.synchronize()
+        )
+
+        integrity_result = (
+            self.integrity_check()
+        )
+
+        return {
+            "synchronization": synchronization,
+            "integrity": integrity_result,
+        }
 
 
 orchestrator = FoundationOrchestrator()
