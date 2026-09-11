@@ -2,7 +2,7 @@
 
 from typing import Dict
 
-from .models import Role
+from .model import Role
 
 
 class RoleManager:
