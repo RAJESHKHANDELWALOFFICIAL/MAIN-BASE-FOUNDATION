@@ -6,19 +6,16 @@ Single operational entry point for the complete
 MAIN-BASE-FOUNDATION foundation layer.
 """
 
-from foundation.audit.audit import audit_log
-from foundation.dependencies.index import dependency_index
-from foundation.identity.identity import identity_manager
-from foundation.registry.registry import registry
-from foundation.security.access import access_controller
+from foundation.core.orchestrator import orchestrator
 
 
 class FoundationService:
     """
-    Central service facade for Foundation operations.
+    Public service facade for the complete Foundation.
 
-    This layer does not replace the underlying systems.
-    It coordinates them through one controlled interface.
+    All major Foundation systems are exposed through
+    the central Orchestrator instead of duplicating
+    system-level coordination logic here.
     """
 
     def __init__(
@@ -29,15 +26,27 @@ class FoundationService:
         self.file_manager = file_manager
         self.sync_engine = sync_engine
 
+        if file_manager is not None:
+            orchestrator.set_file_manager(file_manager)
+
+        if sync_engine is not None:
+            orchestrator.set_sync_engine(sync_engine)
+
     # ==========================================================
     # CONNECTIONS
     # ==========================================================
 
     def set_file_manager(self, file_manager):
         self.file_manager = file_manager
+        orchestrator.set_file_manager(file_manager)
 
     def set_sync_engine(self, sync_engine):
         self.sync_engine = sync_engine
+        orchestrator.set_sync_engine(sync_engine)
+
+    # ==========================================================
+    # FILE OPERATIONS
+    # ==========================================================
 
     def _require_file_manager(self):
         if self.file_manager is None:
@@ -46,18 +55,6 @@ class FoundationService:
             )
 
         return self.file_manager
-
-    def _require_sync_engine(self):
-        if self.sync_engine is None:
-            raise RuntimeError(
-                "Sync Engine is not connected."
-            )
-
-        return self.sync_engine
-
-    # ==========================================================
-    # FILE OPERATIONS
-    # ==========================================================
 
     def create_file(
         self,
@@ -179,7 +176,7 @@ class FoundationService:
         self,
         identity,
     ):
-        return identity_manager.register(
+        return orchestrator.register_identity(
             identity
         )
 
@@ -187,7 +184,7 @@ class FoundationService:
         self,
         entity_id,
     ):
-        return identity_manager.require(
+        return orchestrator.get_identity(
             entity_id
         )
 
@@ -196,17 +193,32 @@ class FoundationService:
         entity_id,
         identity_type,
     ):
-        return identity_manager.get_representation(
-            entity_id,
-            identity_type,
-        )
+        identity = self.get_identity(entity_id)
+
+        if identity is None:
+            return None
+
+        representations = {
+            "small": identity.small,
+            "capital": identity.capital,
+            "bold": identity.bold,
+            "icon_emoji": identity.icon_emoji,
+        }
+
+        if identity_type not in representations:
+            raise ValueError(
+                "Unknown identity representation: "
+                f"{identity_type}"
+            )
+
+        return representations[identity_type]
 
     def update_identity(
         self,
         entity_id,
         **changes,
     ):
-        return identity_manager.update(
+        return orchestrator.update_identity(
             entity_id,
             **changes,
         )
@@ -219,7 +231,7 @@ class FoundationService:
         self,
         entry,
     ):
-        return registry.register(
+        return orchestrator.register_entity(
             entry
         )
 
@@ -227,12 +239,12 @@ class FoundationService:
         self,
         entity_id,
     ):
-        return registry.require(
+        return orchestrator.get_entity(
             entity_id
         )
 
     def list_entities(self):
-        return registry.list_all()
+        return orchestrator.list_entities()
 
     # ==========================================================
     # DEPENDENCIES
@@ -244,7 +256,7 @@ class FoundationService:
         target_id,
         relationship,
     ):
-        return dependency_index.add(
+        return orchestrator.add_dependency(
             source_id=source_id,
             target_id=target_id,
             relationship=relationship,
@@ -254,7 +266,7 @@ class FoundationService:
         self,
         entity_id,
     ):
-        return dependency_index.get_dependencies(
+        return orchestrator.get_dependencies(
             entity_id
         )
 
@@ -262,7 +274,7 @@ class FoundationService:
         self,
         entity_id,
     ):
-        return dependency_index.get_dependents(
+        return orchestrator.get_dependents(
             entity_id
         )
 
@@ -270,7 +282,7 @@ class FoundationService:
         self,
         entity_id,
     ):
-        return dependency_index.get_entity_relationships(
+        return orchestrator.get_relationships(
             entity_id
         )
 
@@ -283,7 +295,7 @@ class FoundationService:
         subject_id,
         operations,
     ):
-        return access_controller.set_permissions(
+        return orchestrator.set_permissions(
             subject_id,
             operations,
         )
@@ -294,7 +306,7 @@ class FoundationService:
         operation,
         path,
     ):
-        return access_controller.authorize_path(
+        return orchestrator.authorize(
             subject_id=subject_id,
             operation=operation,
             path=path,
@@ -304,10 +316,30 @@ class FoundationService:
     # AUDIT
     # ==========================================================
 
+    def audit(
+        self,
+        operation,
+        entity_id,
+        path,
+        subject_id,
+        status,
+        details="",
+    ):
+        return orchestrator.audit(
+            operation=operation,
+            entity_id=entity_id,
+            path=path,
+            subject_id=subject_id,
+            status=status,
+            details=details,
+        )
+
     def audit_history(
         self,
         entity_id,
     ):
+        from foundation.audit.audit import audit_log
+
         return audit_log.get_entity_history(
             entity_id
         )
@@ -316,39 +348,43 @@ class FoundationService:
         self,
         subject_id,
     ):
+        from foundation.audit.audit import audit_log
+
         return audit_log.get_subject_history(
             subject_id
         )
+
+    # ==========================================================
+    # INTEGRITY
+    # ==========================================================
+
+    def integrity_check(self):
+        return orchestrator.integrity_check()
+
+    def registry_integrity(self):
+        return orchestrator.registry_integrity()
+
+    def dependency_integrity(self):
+        return orchestrator.dependency_integrity()
 
     # ==========================================================
     # SYNCHRONIZATION
     # ==========================================================
 
     def synchronize(self):
-        return self._require_sync_engine().synchronize()
+        if self.sync_engine is None:
+            raise RuntimeError(
+                "Sync Engine is not connected."
+            )
+
+        return orchestrator.synchronize()
 
     # ==========================================================
     # SYSTEM STATUS
     # ==========================================================
 
     def status(self) -> dict:
-        return {
-            "file_manager": (
-                "connected"
-                if self.file_manager is not None
-                else "not_connected"
-            ),
-            "sync_engine": (
-                "connected"
-                if self.sync_engine is not None
-                else "not_connected"
-            ),
-            "identity": "active",
-            "registry": "active",
-            "dependencies": "active",
-            "security": "active",
-            "audit": "active",
-        }
+        return orchestrator.status()
 
 
 __all__ = [
