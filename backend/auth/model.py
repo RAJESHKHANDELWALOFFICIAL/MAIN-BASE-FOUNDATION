@@ -21,7 +21,6 @@ class AuthenticationInfo:
     phone: str = ""
 
     # Authentication
-    password: str = ""
     authenticated: bool = False
 
     # Session
@@ -42,3 +41,27 @@ class AuthenticationInfo:
     updated_at: str = field(
         default_factory=lambda: datetime.utcnow().isoformat()
     )
+
+    def to_dict(self) -> dict:
+        """Return a safe authentication response."""
+
+        return {
+            "id": self.id,
+            "master_id": self.master_id,
+            "identity_id": self.identity_id,
+            "supreme_id": self.supreme_id,
+            "full_name": self.full_name,
+            "username": self.username,
+            "email": self.email,
+            "phone": self.phone,
+            "authenticated": self.authenticated,
+            "session_id": self.session_id,
+            "token": self.token,
+            "status": self.status,
+            "last_login": self.last_login,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
+
+
+__all__ = ["AuthenticationInfo"]
