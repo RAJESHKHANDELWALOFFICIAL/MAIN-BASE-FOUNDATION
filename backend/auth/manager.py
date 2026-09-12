@@ -15,9 +15,18 @@ class AuthenticationManager:
 
         return self.controller.authenticate(master_id)
 
-    def login(self, master_id):
+    def login(
+        self,
+        master_id=None,
+        username=None,
+        password=None
+    ):
 
-        return self.controller.login(master_id)
+        return self.controller.login(
+            master_id=master_id,
+            username=username,
+            password=password
+        )
 
     def logout(self):
 
