@@ -18,10 +18,10 @@ class UserController:
         return self.service.get_user(user_id)
 
     def update(self, **kwargs):
-        self.service.update_user(**kwargs)
+        return self.service.update_user(**kwargs)
 
     def delete(self, user_id):
-        self.service.delete_user(user_id)
+        return self.service.delete_user(user_id)
 
     def list(self):
         return self.service.get_all_users()
