@@ -24,7 +24,7 @@ class UserService:
     # ------------------------------------------------------------------
 
     def initialize(self):
-        """Initialize the users table."""
+        """Initialize the users table and migrate legacy passwords."""
 
         self.database.initialize()
 
@@ -44,6 +44,66 @@ class UserService:
             """
         )
 
+        # ------------------------------------------------------------------
+        # PASSWORD HASH COLUMN MIGRATION
+        # ------------------------------------------------------------------
+
+        columns = self.database.fetchall(
+            "PRAGMA table_info(users)"
+        )
+
+        column_names = {
+            column["name"]
+            for column in columns
+        }
+
+        if "password_hash" not in column_names:
+            self.database.execute(
+                """
+                ALTER TABLE users
+                ADD COLUMN password_hash TEXT
+                """
+            )
+
+        # ------------------------------------------------------------------
+        # LEGACY PLAINTEXT PASSWORD MIGRATION
+        # ------------------------------------------------------------------
+
+        legacy_users = self.database.fetchall(
+            """
+            SELECT
+                user_id,
+                password
+            FROM users
+            WHERE
+                password IS NOT NULL
+                AND password != ''
+                AND (
+                    password_hash IS NULL
+                    OR password_hash = ''
+                )
+            """
+        )
+
+        for row in legacy_users:
+            password_hash = self.hash_password(
+                row["password"]
+            )
+
+            self.database.execute(
+                """
+                UPDATE users
+                SET
+                    password = '',
+                    password_hash = ?
+                WHERE user_id = ?
+                """,
+                (
+                    password_hash,
+                    row["user_id"],
+                ),
+            )
+
         return {
             "service": "UserService",
             "status": "INITIALIZED",
@@ -60,7 +120,9 @@ class UserService:
         if not password:
             raise ValueError("Password cannot be empty.")
 
-        salt = secrets.token_bytes(cls.PASSWORD_SALT_BYTES)
+        salt = secrets.token_bytes(
+            cls.PASSWORD_SALT_BYTES
+        )
 
         password_hash = hashlib.pbkdf2_hmac(
             "sha256",
@@ -111,7 +173,7 @@ class UserService:
             return False
 
     # ------------------------------------------------------------------
-    # USER CREATION
+    # CREATE
     # ------------------------------------------------------------------
 
     def create_user(
@@ -192,7 +254,7 @@ class UserService:
         return user
 
     # ------------------------------------------------------------------
-    # USER RETRIEVAL
+    # INTERNAL USER CONVERSION
     # ------------------------------------------------------------------
 
     def _row_to_user(self, row) -> User:
@@ -207,6 +269,10 @@ class UserService:
             role=row["role"],
             status=row["status"],
         )
+
+    # ------------------------------------------------------------------
+    # GET USER
+    # ------------------------------------------------------------------
 
     def get_user(
         self,
@@ -373,7 +439,7 @@ class UserService:
         username: str,
         password: str,
     ) -> bool:
-        """Verify a user's password without exposing the password."""
+        """Verify a user's password without exposing it."""
 
         row = self.database.fetchone(
             """
