@@ -14,9 +14,16 @@ controller = AuthenticationController()
 
 
 class LoginRequest(BaseModel):
+
     username: str | None = None
     password: str | None = None
     master_id: str | None = None
+
+
+class TokenRequest(BaseModel):
+
+    token: str | None = None
+    session_id: str | None = None
 
 
 @router.get("/initialize")
@@ -25,13 +32,16 @@ def initialize():
     result = controller.initialize()
 
     if hasattr(result, "to_dict"):
+
         return result.to_dict()
 
     return result
 
 
 @router.post("/login")
-def login(request: LoginRequest):
+def login(
+    request: LoginRequest
+):
 
     result = controller.login(
         master_id=request.master_id,
@@ -40,25 +50,44 @@ def login(request: LoginRequest):
     )
 
     if hasattr(result, "to_dict"):
+
         return result.to_dict()
 
     return result
 
 
 @router.post("/authenticate")
-def authenticate(master_id: str):
+def authenticate(
+    master_id: str
+):
 
     result = controller.authenticate(
         master_id
     )
 
     if hasattr(result, "to_dict"):
+
         return result.to_dict()
 
     return result
 
 
-@router.post("/logout")
-def logout():
+@router.post("/validate")
+def validate_token(
+    request: TokenRequest
+):
 
-    return controller.logout()
+    return controller.validate_token(
+        request.token or ""
+    )
+
+
+@router.post("/logout")
+def logout(
+    request: TokenRequest
+):
+
+    return controller.logout(
+        token=request.token,
+        session_id=request.session_id
+    )
