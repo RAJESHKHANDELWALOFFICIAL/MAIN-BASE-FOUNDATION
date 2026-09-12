@@ -11,17 +11,32 @@ controller = UserController()
 
 @router.get("/")
 def get_users():
-    return controller.list()
+    users = controller.list()
+
+    return {
+        "message": "Users retrieved successfully",
+        "data": [user.to_dict() for user in users]
+    }
 
 
 @router.get("/{user_id}")
 def get_user(user_id: str):
-    return controller.get(user_id)
+    user = controller.get(user_id)
+
+    if user is None:
+        return {
+            "message": "User not found",
+            "data": None
+        }
+
+    return {
+        "message": "User retrieved successfully",
+        "data": user.to_dict()
+    }
 
 
 @router.post("/")
 def create_user():
-
     user = controller.register(
         user_id="USR-000001",
         full_name="DR RAJESH KHANDELWAL IBC",
@@ -35,14 +50,13 @@ def create_user():
 
     return {
         "message": "User created successfully",
-        "data": user
+        "data": user.to_dict()
     }
 
 
 @router.put("/{user_id}")
 def update_user(user_id: str):
-
-    controller.update(
+    user = controller.update(
         user_id=user_id,
         full_name="Updated User",
         username="updateduser",
@@ -53,16 +67,23 @@ def update_user(user_id: str):
         status="ACTIVE"
     )
 
+    if user is None:
+        return {
+            "message": "User not found",
+            "data": None
+        }
+
     return {
-        "message": "User updated successfully"
+        "message": "User updated successfully",
+        "data": user.to_dict()
     }
 
 
 @router.delete("/{user_id}")
 def delete_user(user_id: str):
-
-    controller.delete(user_id)
+    result = controller.delete(user_id)
 
     return {
-        "message": "User deleted successfully"
+        "message": "User deleted successfully",
+        "data": result
     }
