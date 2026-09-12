@@ -30,6 +30,19 @@ class AuthenticationController:
             password=password
         )
 
-    def logout(self):
+    def validate_token(self, token):
 
-        return self.service.logout()
+        return self.service.validate_token(
+            token
+        )
+
+    def logout(
+        self,
+        token=None,
+        session_id=None
+    ):
+
+        return self.service.logout(
+            token=token,
+            session_id=session_id
+        )
