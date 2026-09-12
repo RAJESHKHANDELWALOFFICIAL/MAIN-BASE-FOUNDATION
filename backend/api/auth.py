@@ -8,25 +8,56 @@ router = APIRouter(
     tags=["Authentication"]
 )
 
+
 controller = AuthenticationController()
 
 
 @router.get("/initialize")
 def initialize():
 
-    return controller.initialize()
+    result = controller.initialize()
+
+    if hasattr(result, "to_dict"):
+
+        return result.to_dict()
+
+    return result
 
 
 @router.post("/login")
-def login(master_id: str):
+def login(
+    username: str = None,
+    password: str = None,
+    master_id: str = None
+):
 
-    return controller.login(master_id)
+    result = controller.login(
+        master_id=master_id,
+        username=username,
+        password=password
+    )
+
+    if hasattr(result, "to_dict"):
+
+        return result.to_dict()
+
+    return result
 
 
 @router.post("/authenticate")
-def authenticate(master_id: str):
+def authenticate(
+    master_id: str
+):
 
-    return controller.authenticate(master_id)
+    result = controller.authenticate(
+        master_id
+    )
+
+    if hasattr(result, "to_dict"):
+
+        return result.to_dict()
+
+    return result
 
 
 @router.post("/logout")
