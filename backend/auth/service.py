@@ -1,4 +1,8 @@
+from datetime import datetime
+import secrets
+
 from backend.identity.service import IdentityService
+from backend.users.service import UserService
 from backend.auth.model import AuthenticationInfo
 
 
@@ -7,6 +11,7 @@ class AuthenticationService:
     def __init__(self):
 
         self.identity_service = IdentityService()
+        self.user_service = UserService()
 
     def authenticate(self, master_id):
 
@@ -35,9 +40,91 @@ class AuthenticationService:
 
         )
 
-    def login(self, master_id):
+    def login_with_password(
+        self,
+        username: str,
+        password: str
+    ):
 
-        return self.authenticate(master_id)
+        user = self.user_service.search_user_by_username(
+            username
+        )
+
+        if user is None:
+
+            return {
+                "authenticated": False,
+                "message": "Invalid username or password"
+            }
+
+        verified = self.user_service.verify_user_password(
+            username,
+            password
+        )
+
+        if not verified:
+
+            return {
+                "authenticated": False,
+                "message": "Invalid username or password"
+            }
+
+        if user.status != "ACTIVE":
+
+            return {
+                "authenticated": False,
+                "message": "User account is not active"
+            }
+
+        now = datetime.utcnow().isoformat()
+
+        session_id = secrets.token_urlsafe(32)
+        token = secrets.token_urlsafe(48)
+
+        return AuthenticationInfo(
+
+            full_name=user.full_name,
+            username=user.username,
+            email=user.email,
+            phone=user.phone,
+
+            authenticated=True,
+
+            session_id=session_id,
+            token=token,
+
+            status=user.status,
+
+            last_login=now,
+            created_at=now,
+            updated_at=now
+
+        )
+
+    def login(
+        self,
+        master_id=None,
+        username=None,
+        password=None
+    ):
+
+        if username is not None and password is not None:
+
+            return self.login_with_password(
+                username,
+                password
+            )
+
+        if master_id is not None:
+
+            return self.authenticate(
+                master_id
+            )
+
+        return {
+            "authenticated": False,
+            "message": "Authentication credentials required"
+        }
 
     def logout(self):
 
@@ -48,4 +135,6 @@ class AuthenticationService:
 
     def initialize(self):
 
-        return self.authenticate("MBF-000001")
+        return self.authenticate(
+            "MBF-000001"
+        )
