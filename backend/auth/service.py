@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import secrets
 
 from backend.identity.service import IdentityService
@@ -76,7 +76,7 @@ class AuthenticationService:
                 "message": "User account is not active"
             }
 
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
 
         session_id = secrets.token_urlsafe(32)
         token = secrets.token_urlsafe(48)
